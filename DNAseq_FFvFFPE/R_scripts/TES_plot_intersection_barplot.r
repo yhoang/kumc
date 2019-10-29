@@ -1,0 +1,32 @@
+#!/bin/bash
+
+max=1600000
+
+textcolor = "#2E2E2E";
+FILE = "/project/results/me/TES/plots/intersection_barplot/intersection.list";
+pdffile = "/project/results/me/TES/plots/intersection_barplot/intersection_targeted.pdf";
+
+table=read.table(FILE,sep="\t",header=TRUE);
+
+pdf (file = pdffile, width=30, height=20, pointsize=30)  
+par (oma=c(0,0,0,0),mar=c(3,5,2,5),col=textcolor)
+barplot(table[,3], width=(0.008),ylim=c(0,max),col=c("#999999"),cex.axis=1.5,cex.lab=1.5, main = "",border="dark grey",ylab="intersect positions",cex=1.4,col.lab=textcolor,col.axis=textcolor)
+#names.arg=c("2474","2561","2640","2685","2938","3050","3356","4079","4191","14119(N)","14119(T)","22285(N)","22285(T)"),ylab="targeted intersect positions",cex=1.4,col.lab=textcolor,col.axis=textcolor)
+mtext("       2474     2561    2640     2685     2938     3050     3356    4079    4191      (N) 14119 (T)    (N) 22285 (T)", side=1,line=1, cex=1.24, col=textcolor,adj=0)
+dev.off()
+
+say=sprintf("%s created!",pdffile);
+print(say);   
+
+pdffile = "/project/results/me/TES/plots/intersection_barplot/intersection.pdf";
+max=7300000
+pdf (file = pdffile, width=30, height=20, pointsize=30)  
+par (oma=c(0,0,0,0),mar=c(3,5,2,5),col=textcolor)
+barplot(rbind(table[,2]), width=(0.02),ylim=c(0,max),col=c("#999999"),cex.axis=1.5,cex.lab=1.5, main = "",border="dark grey",ylab="intersect positions",cex=1.4,col.lab=textcolor,col.axis=textcolor)
+#names.arg=c("2474","2561","2640","2685","2938","3050","3356","4079","4191","14119(N)","14119(T)","22285(N)","22285(T)"),ylab="intersect positions",cex=1.4,col.lab=textcolor,col.axis=textcolor)
+mtext("       2474     2561    2640     2685     2938     3050     3356    4079    4191      (N) 14119 (T)    (N) 22285 (T)", side=1,line=1, cex=1.24, col=textcolor,adj=0)
+dev.off()
+
+say=sprintf("%s created!",pdffile);
+print(say);   
+

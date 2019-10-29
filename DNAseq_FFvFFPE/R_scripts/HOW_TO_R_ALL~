@@ -1,0 +1,39 @@
+# cov correlation 20k rdm position total/targeted
+for (s in 1:13) { source("~/Dropbox/workspace_me/R_scripts/TES_plot_cov_correlation_2D_rdm.r") }
+# cov correlation variants total/targeted pass/q43cov13
+for (s in 1:13) { source("~/Dropbox/workspace_me/R_scripts/TES_plot_cov_correlation_2D_variants_FR.r") }
+# allele frequency 1D variants pass/q43cov13
+for (s in 1:13) { source("~/Dropbox/workspace_me/R_scripts/TES_plot_AF_correlation.r") }
+# allele frequency 2D variants pass/q43cov13
+for (s in 1:13) { source("~/Dropbox/workspace_me/R_scripts/TES_plot_AF_correlation_condis.r") }
+# allele frequency density variants pass/q43cov13
+for (s in 1:13) { source("~/Dropbox/workspace_me/R_scripts/TES_plot_AF_density.r") }
+# mapping quality variants pass/q43cov13
+for (s in 1:13) { source("~/Dropbox/workspace_me/R_scripts/TES_plot_mapQ_correlation_FN_FP.r") }
+for (s in 1:13) { source("~/Dropbox/workspace_me/R_scripts/TES_plot_mapQ_correlation.r") }
+
+
+
+
+
+
+
+
+
+# cov correlation 20k rdm position total/targeted
+for (s in 1:13) { source("~/Dropbox/workspace_me/R_scripts/WES_plot_cov_correlation_2D_rdm.r") }
+# cov correlation variants total/targeted pass/q43cov13
+for (s in 1:13) { source("~/Dropbox/workspace_me/R_scripts/WES_plot_cov_correlation_2D_variants_FR.r") }
+# allele frequency 1D variants pass/q43cov13
+for (s in 1:13) { source("~/Dropbox/workspace_me/R_scripts/WES_plot_AF_correlation.r") }
+# allele frequency 2D variants pass/q43cov13
+for (s in 1:13) { source("~/Dropbox/workspace_me/R_scripts/WES_plot_AF_correlation_condis.r") }
+# allele frequency density variants pass/q43cov13
+for (s in 1:13) { source("~/Dropbox/workspace_me/R_scripts/WES_plot_AF_density.r") }
+
+
+# mapping quality variants pass/q43cov13
+for (s in 1:13) { source("~/Dropbox/workspace_me/R_scripts/WES_plot_mapQ_correlation_FN_FP.r") }
+
+
+

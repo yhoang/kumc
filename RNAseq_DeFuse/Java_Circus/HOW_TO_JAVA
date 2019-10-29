@@ -1,0 +1,13 @@
+Java 
+
+./DeFuse_all compare_all.txt
+# output: all_combinations.png
+
+./DeFuse_1on1 sample_list
+# output: folder 'compare_1on1' with circos-png each possible combination
+
+./DeFuse_myself samples
+# output: folder 'compare_myself' with circos-png each sample
+
+./Highlight_denovo 
+# output: folder 'png_group#' with circos-png each metastasis sample compared to primary samples

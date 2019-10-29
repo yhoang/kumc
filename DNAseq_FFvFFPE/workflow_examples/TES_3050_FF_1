@@ -1,0 +1,154 @@
+#!/bin/bash
+# Author Yen Hoang, M.Sc.
+# 2013
+
+mkdir /project/results/me/TES/3050_FF/bwa
+mkdir /project/results/me/TES/3050_FF/sort
+mkdir /project/results/me/TES/3050_FF/gatk
+mkdir /project/results/me/TES/3050_FF/genotyper
+
+# after bwa reference indexing do assembling
+for i in {5..8} #lanes
+do
+     echo " "
+     cd /project/results/me/TES/3050_FF/bwa/
+     echo "####### BWA ALIGN L00${i}_R1_001 out of Lane 1-4 001 3050_FF"
+        /analyse_bin/bwa/0.7.3/bwa aln                          \
+ 	 -t 5                                                       \
+ 	 -l 25                                                      \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/TES/3050_FF/3050_CGAGGC_L00${i}_R1_001.fastq.gz \
+ 	 > /project/results/me/TES/3050_FF/bwa/3050_FF_L00${i}_R1_001_indexed.sai 
+     echo " "more
+     echo "####### BWA ALIGN L00${i}_R2_001 out of Lane 1-4 001 3050_FF"
+        /analyse_bin/bwa/0.7.3/bwa aln                          \
+ 	 -t 5                                                       \
+ 	 -l 25                                                      \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/TES/3050_FF/3050_CGAGGC_L00${i}_R2_001.fastq.gz \
+ 	 > /project/results/me/TES/3050_FF/bwa/3050_FF_L00${i}_R2_001_indexed.sai
+     echo " "
+     echo "####### BWA SAMPE L00${i}_R_001 out of Lane 1-4 001 3050_FF"
+        /analyse_bin/bwa/0.7.3/bwa sampe                        \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ 	 /project/results/me/TES/3050_FF/bwa/3050_FF_L00${i}_R1_001_indexed.sai \
+ 	 /project/results/me/TES/3050_FF/bwa/3050_FF_L00${i}_R2_001_indexed.sai \
+ 	 /project/data/Illumina/TES/3050_FF/3050_CGAGGC_L00${i}_R1_001.fastq.gz \
+ 	 /project/data/Illumina/TES/3050_FF/3050_CGAGGC_L00${i}_R2_001.fastq.gz \
+ 	 |/analyse_bin/samtools/0.1.18/samtools view -uS -		\
+	 |/analyse_bin/samtools/0.1.18/samtools sort - 3050_FF.bwa.L00${i}_R_001.ssorted
+     cd /project/results/me/TES/3050_FF/sort/
+     echo " "
+     echo "########## PICARD SORT Lane 3050_FF_L00${i} out of Lane 1-4 001 3050_FF"
+        java -Xmx22g -jar /analyse_bin/picard-tools/1.77/SortSam.jar   	\
+ 	 MAX_RECORDS_IN_RAM=16000000    		\
+ 	 VALIDATION_STRINGENCY=LENIENT 			\
+ 	 SO=coordinate                  		\
+ 	 I=/project/results/me/TES/3050_FF/bwa/3050_FF.bwa.L00${i}_R_001.ssorted.bam	\
+	 O=/project/results/me/TES/3050_FF/sort/3050_FF.bwa.L00${i}_R_001.psorted.bam
+     echo " "
+     echo "######### PICARD addedreadgroups L00${i}_R1_001 out of Lane 1-4 001 3050_FF"
+        java -Xmx22g -jar /analyse_bin/picard-tools/1.77/AddOrReplaceReadGroups.jar    \
+	 CREATE_INDEX=true                              	\
+	 RGLB=bar                                       	\
+	 RGPL=Illumina                                  	\
+	 RGPU=GCTACG                                    	\
+	 RGSM=3050_FF                                       \
+	 RGDS=Picard-tools                                  \
+	 RGCN=null                                      	\
+	 MAX_RECORDS_IN_RAM=16000000                    	\
+	 VALIDATION_STRINGENCY=LENIENT                  	\
+	 SO=coordinate                                  	\
+	 I=/project/results/me/TES/3050_FF/sort/3050_FF.bwa.L00${i}_R_001.psorted.bam 	\
+	 O=/project/results/me/TES/3050_FF/sort/3050_FF.bwa.L00${i}_R_001.psorted.rg.bam
+     echo "###### Done BWA and SORT Lane 3050_FF_L00${i}!"
+done
+echo " "
+cd /project/results/me/TES/3050_FF/sort
+echo "####### SAMTOOLS merge 3050_FF"
+/analyse_bin/samtools/0.1.18/samtools merge 	\
+ -f 3050_FF.bwa.merged.bam 			    \
+ 3050_FF.bwa.L005_R_001.psorted.rg.bam 	\
+ 3050_FF.bwa.L006_R_001.psorted.rg.bam 	\
+ 3050_FF.bwa.L007_R_001.psorted.rg.bam 	\
+ 3050_FF.bwa.L008_R_001.psorted.rg.bam 	
+echo " "
+echo "####### PICARD-TOOLS DeleteDuplicates after Samtools merge and picard added rg 3050_FF"
+java -Xmx22g -jar /analyse_bin/picard-tools/1.77/MarkDuplicates.jar \
+ REMOVE_DUPLICATES=true 		       			\
+ VALIDATION_STRINGENCY=LENIENT 			    	\
+ MAX_SEQUENCES_FOR_DISK_READ_ENDS_MAP=16000000 	\
+ MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=16000000 	\
+ I=/project/results/me/TES/3050_FF/sort/3050_FF.bwa.merged.bam 	\
+ O=/project/results/me/TES/3050_FF/sort/3050_FF.bwa.rmd.bam 	\
+ M=/project/results/me/TES/3050_FF/sort/3050_FF.bwa.metrics.txt
+echo " "
+echo "####### SAMTOOLS index 3050_FF"
+/analyse_bin/samtools/0.1.18/samtools index 3050_FF.bwa.rmd.bam
+echo " "
+cd /project/results/me/TES/3050_FF/gatk/
+echo "######## GATK realignertargetcreator 3050_FF"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar 	\
+ -T RealignerTargetCreator 					\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -known /project/data/refs/b37/VCF/Mills_and_1000G_gold_standard.indels.b37.sites.vcf 	\
+ -known /project/data/refs/b37/VCF/1000G_phase1.indels.b37.vcf 	\
+ -I /project/results/me/TES/3050_FF/sort/3050_FF.bwa.rmd.bam 	\
+ -o /project/results/me/TES/3050_FF/gatk/3050_FF.bwa.rmd.realign.intervals		\
+ -l INFO 							\
+ -nt 5 								\
+ -maxInterval 500 					\
+ -minReads 4 						\
+ -mismatch 0.0 						\
+ -window 10
+echo " "
+echo "####### GATK indelrealigner 3050_FF"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar	\
+ -T IndelRealigner 						\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -known /project/data/refs/b37/VCF/Mills_and_1000G_gold_standard.indels.b37.sites.vcf \
+ -known /project/data/refs/b37/VCF/1000G_phase1.indels.b37.vcf 	\
+ -I /project/results/me/TES/3050_FF/sort/3050_FF.bwa.rmd.bam 	\
+ -o /project/results/me/TES/3050_FF/gatk/3050_FF.bwa.rmd.realigned.bam	\
+ -targetIntervals /project/results/me/TES/3050_FF/gatk/3050_FF.bwa.rmd.realign.intervals	\
+ -l INFO 						\
+ -LOD 5.0 						\
+ -model USE_READS 				\
+ -entropy 0.15 					\
+ -maxInMemory 16000000 			\
+ -maxIsize 3000 				\
+ -maxPosMove 200 				\
+ -maxConsensuses 30 			\
+ -greedy 120 					\
+ -maxReads 20000 				\
+ -compress 5 
+echo " "
+echo "######## GATK BaseRecalibrator --> Base Quality Score Recalibrator Step 1/2 3050_FF"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar\
+ -T BaseRecalibrator    \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -knownSites /project/data/refs/b37/VCF/1000G_omni2.5.b37.sites.vcf	    \
+ -knownSites /project/data/refs/b37/VCF/dbsnp_135.b37.vcf		        \
+ -I /project/results/me/TES/3050_FF/gatk/3050_FF.bwa.rmd.realigned.bam	\
+ -o /project/results/me/TES/3050_FF/gatk/3050_FF.recal_data.grp
+echo " "
+echo "######## GATK PrintReads --> Base Quality Score Recalibrator Step 2/2 3050_FF"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar	\
+ -T PrintReads  \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -BQSR /project/results/me/TES/3050_FF/gatk/3050_FF.recal_data.grp	    \
+ -I /project/results/me/TES/3050_FF/gatk/3050_FF.bwa.rmd.realigned.bam	\
+ -o /project/results/me/TES/3050_FF/gatk/3050_FF.bwa.recal.bam	\
+ -baq RECALCULATE 
+echo " "
+echo "##### GATK ReduceReads --> Improving Calling Performance 3050_FF"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar	\
+ -T ReduceReads \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -I /project/results/me/TES/3050_FF/gatk/3050_FF.bwa.recal.bam	        \
+ -o /project/results/me/TES/3050_FF/gatk/3050_FF.bwa.reduced.bam  
+echo ""
+echo ""
+echo "DONE WITH GATK 3050_FF"
+ 
+

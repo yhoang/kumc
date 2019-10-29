@@ -1,0 +1,16 @@
+#!/bin/bash
+cd /project/results/Godwin/somatic_sniper/final/
+/analyse_bin/sniper/bin/bam-somaticsniper -f /project/data/refs/b37/human_g1k_v37.fasta.gz /project/results/Godwin/T_JM1/gatk/T_JM1.recal.bam /project/results/Godwin/N_JMM/gatk/N_JMM.recal.bam -J -q 43 truedis_bwa_sniper_T_JM1_N_JMM.xls &
+/analyse_bin/sniper/bin/bam-somaticsniper -f /project/data/refs/b37/human_g1k_v37.fasta.gz /project/results/Godwin/T_JM2/gatk/T_JM2.recal.bam /project/results/Godwin/N_JMM/gatk/N_JMM.recal.bam -J -q 43 truedis_bwa_sniper_T_JM2_N_JMM.xls &
+/analyse_bin/sniper/bin/bam-somaticsniper -f /project/data/refs/b37/human_g1k_v37.fasta.gz /project/results/Godwin/T_JM1/gatk/T_JM1.recal.bam /project/results/Godwin/N_JM/gatk/N_JM.recal.bam -J -q 43 truedis_bwa_sniper_T_JM1_N_JM.xls &
+/analyse_bin/sniper/bin/bam-somaticsniper -f /project/data/refs/b37/human_g1k_v37.fasta.gz /project/results/Godwin/T_JM2/gatk/T_JM2.recal.bam /project/results/Godwin/N_JM/gatk/N_JM.recal.bam -J -q 43 truedis_bwa_sniper_T_JM2_N_JM.xls &
+/analyse_bin/sniper/bin/bam-somaticsniper -f /project/data/refs/b37/human_g1k_v37.fasta.gz /project/results/Godwin/T_KK/gatk/T_KK.recal.bam /project/results/Godwin/N_KK/gatk/N_KK.recal.bam -J -q 43 truedis_bwa_sniper_T_KK_N_KK.xls &
+
+cd /project/results/Godwin/somatic_sniper/final/
+# $13:tumor cov>12, $14:normal dov>12,$2:var cov>1
+more truedis_bwa_sniper_T_JM1_N_JM.xls | awk '$13>12 && $14>12 && $20>1' > filter/truedis_bwa_sniper_T_JM1_N_JM.xls
+more truedis_bwa_sniper_T_JM2_N_JM.xls | awk '$13>12 && $14>12 && $20>1' > filter/truedis_bwa_sniper_T_JM2_N_JM.xls
+more truedis_bwa_sniper_T_JM1_N_JMM.xls | awk '$13>12 && $14>12 && $20>1' > filter/truedis_bwa_sniper_T_JM1_N_JMM.xls
+more truedis_bwa_sniper_T_JM2_N_JMM.xls | awk '$13>12 && $14>12 && $20>1' > filter/truedis_bwa_sniper_T_JM2_N_JMM.xls
+more truedis_bwa_sniper_T_KK_N_KK.xls | awk '$13>12 && $14>12 && $20>1' > filter/truedis_bwa_sniper_T_KK_N_KK.xls
+

@@ -1,0 +1,71 @@
+#!/bin/bash
+
+threshold = "recal";
+#threshold = "q43cov13";
+#threshold = "pass";
+
+
+max=1800
+targeted = "targeted_";
+
+textcolor = "#2E2E2E";
+SNV_FILE = sprintf("/project/results/me/WES/plots/SNV_condis_barplot/WES_SNV_%s%s",targeted,threshold);
+pdffile = sprintf("/project/results/me/WES/plots/SNV_condis_barplot/WES_%sSNV_condis_%s.pdf",targeted,threshold);
+
+table=read.table(SNV_FILE,sep="\t",header=TRUE);
+
+y_tick = c((0:5)*300)
+pdf (file = pdffile, width=30, height=20, pointsize=30)  
+par (oma=c(0,0,0,0),mar=c(3,6,2,2),col=textcolor)
+barplot(rbind(table[,4],table[,5],table[,7],table[,6]), width=(0.02),ylim=c(0,max),col=c("#999999","#FF4500","#1E90FF","#9ACD32"),cex.lab=2.4, font.lab = 2, main = "",border="dark grey",ylab="SNV counts",col.lab=textcolor,yaxt="n")
+axis(2,lty=1,lwd=7,at=(y_tick),labels=y_tick,las=0, cex.axis=2,col=textcolor,col.lab=textcolor,col.axis=textcolor)
+mtext("       2474    2561   2640    2685   2938   3050    3356    4079    4191   (N)14119(T)   (N)22285(T)", side=1,line=1, cex=1.4, col=textcolor,adj=0, font =2)
+legend("topright",c("concordant","discordant","false positives","false negatives"),col=c("#999999","#FF4500","#1E90FF","#9ACD32"),
+fill=c("#999999","#FF4500","#1E90FF","#9ACD32"),cex=1.7,border="dark grey",text.col=textcolor,bg = "white")
+dev.off()
+
+say=sprintf("%s created!",pdffile);
+print(say);   
+
+#######
+max=27000
+targeted = "exonic_";
+
+textcolor = "#2E2E2E";
+SNV_FILE = sprintf("/project/results/me/WES/plots/SNV_condis_barplot/WES_SNV_%s%s",targeted,threshold);
+pdffile = sprintf("/project/results/me/WES/plots/SNV_condis_barplot/WES_%sSNV_condis_%s.pdf",targeted,threshold);
+
+table=read.table(SNV_FILE,sep="\t",header=TRUE);
+y_tick = c((0:5)*5000)
+pdf (file = pdffile, width=30, height=20, pointsize=30)  
+par (oma=c(0,0,0,0),mar=c(3,6,2,2),col=textcolor)
+barplot(rbind(table[,4],table[,5],table[,7],table[,6]), width=(0.02),ylim=c(0,max),col=c("#999999","#FF4500","#1E90FF","#9ACD32"),cex.lab=2.4, font.lab = 2, main = "",border="dark grey",ylab="SNV counts",col.lab=textcolor,yaxt="n")
+axis(2,lty=1,lwd=7,at=(y_tick),labels=y_tick,las=0, cex.axis=2,col=textcolor,col.lab=textcolor,col.axis=textcolor)
+mtext("       2474    2561   2640    2685   2938   3050    3356    4079   4191    (N)14119(T)   (N)22285(T)", side=1,line=1, cex=1.4, col=textcolor,adj=0, font =2)
+legend("topright",c("concordant","discordant","false positives","false negatives"),col=c("#999999","#FF4500","#1E90FF","#9ACD32"),
+fill=c("#999999","#FF4500","#1E90FF","#9ACD32"),cex=1.7,border="dark grey",text.col=textcolor,bg = "white")
+dev.off()
+
+say=sprintf("%s created!",pdffile);
+print(say);   
+
+########
+
+max=140000
+SNV_FILE = sprintf("/project/results/me/WES/plots/SNV_condis_barplot/WES_SNV_%s",threshold);
+pdffile = sprintf("/project/results/me/WES/plots/SNV_condis_barplot/WES_SNV_condis_%s.pdf",threshold);
+
+table=read.table(SNV_FILE,sep="\t",header=TRUE);
+
+pdf (file = pdffile, width=30, height=20, pointsize=30)  
+par (oma=c(0,0,0,0),mar=c(3,6,2,2),col=textcolor)
+barplot(rbind(table[,4],table[,5],table[,7],table[,6]), width=(0.02),ylim=c(0,max),col=c("#999999","#FF4500","#1E90FF","#9ACD32"),cex.lab=2.4, font.lab = 2, main = "",border="dark grey",ylab="SNV counts",col.lab=textcolor,yaxt="n")
+axis(2,lty=1,lwd=7,at=(y_tick),labels=y_tick,las=0, cex.axis=2,col=textcolor,col.lab=textcolor,col.axis=textcolor)
+mtext("       2474    2561   2640    2685   2938   3050    3356    4079   4191    (N)14119(T)   (N)22285(T)", side=1,line=1, cex=1.4, col=textcolor,adj=0, font =2)
+legend("topright",c("concordant","discordant","false positives","false negatives"),col=c("#999999","#FF4500","#1E90FF","#9ACD32"),
+fill=c("#999999","#FF4500","#1E90FF","#9ACD32"),cex=1.7,border="dark grey",text.col=textcolor,bg = "white")
+dev.off()
+
+say=sprintf("%s created!",pdffile);
+print(say);   
+

@@ -1,0 +1,214 @@
+#!/bin/bash
+
+mkdir /project/results/Belinsky/T_P1/bwa
+mkdir /project/results/Belinsky/T_P1/sort
+mkdir /project/results/Belinsky/T_P1/gatk
+mkdir /project/results/Belinsky/T_P1/genotyper
+
+echo "######### BWA mem T_P1"
+date
+cd /project/results/Belinsky/T_P1/bwa
+/analyse_bin/bwa/0.7.3/bwa mem \
+ -t 5 -M -v 1 \
+ -r 1.0 -k 35 -U 15 \
+ -R '@RG\tID:1012056\tPL:Illumina\tPU:CAGATC\tLB:Exome\tDS:GIST\tSM:T_P1' \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz	\
+ /project/data/Belinsky/Sample_1012056/1012056_CAGATC_L007_R1_001.fastq.gz \
+ /project/data/Belinsky/Sample_1012056/1012056_CAGATC_L007_R2_001.fastq.gz \
+ | /analyse_bin/samtools/0.1.18/samtools view -uS -	\
+ | /analyse_bin/samtools/0.1.18/samtools sort - T_P1.bwamem.ssorted
+cd /project/results/Belinsky/T_P1/sort/
+echo "######### PICARD sort T_P1"
+java -Xmx28g -jar /analyse_bin/picard-tools/1.77/SortSam.jar \
+ MAX_RECORDS_IN_RAM=10000000    \
+ VALIDATION_STRINGENCY=LENIENT 	\
+ SO=coordinate                  \
+ I=/project/results/Belinsky/T_P1/bwa/T_P1.bwamem.ssorted.bam	\
+ O=/project/results/Belinsky/T_P1/sort/T_P1.bwamem.psorted.bam   
+echo " "
+
+cd /project/results/Belinsky/T_P1/sort/
+echo " "
+echo "#########PICARD-TOOLS DELETE DUPLICATES T_P1"
+java -Xmx28g -jar /analyse_bin/picard-tools/1.77/MarkDuplicates.jar \
+ REMOVE_DUPLICATES=true                         \
+ CREATE_INDEX=true				\
+ VALIDATION_STRINGENCY=LENIENT                  \
+ MAX_SEQUENCES_FOR_DISK_READ_ENDS_MAP=15000000  \
+ MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=15000000    \
+ I=/project/results/Belinsky/T_P1/sort/T_P1.bwamem.psorted.bam   \
+ O=/project/results/Belinsky/T_P1/sort/T_P1.bwamem.psorted.rmd.bam       \
+ M=/project/results/Belinsky/T_P1/sort/T_P1.bwamem.psorted.rmd.metrix.txt
+echo " "
+echo "WAITING FOR GATK REALIGNMENT"
+cd /project/results/Belinsky/T_P1/gatk/
+echo " "
+echo "######### GATK realignertargetcreator T_P1"
+java -Xmx28g -jar /analyse_bin/GATK/2.4-7/GenomeAnalysisTK.jar \
+ -T RealignerTargetCreator      \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta    	\
+ -I /project/results/Belinsky/T_P1/sort/T_P1.bwamem.psorted.rmd.bam 	\
+ -I /project/results/Belinsky/T_N2/sort/T_N2.bwamem.psorted.rmd.bam 	\
+ -I /project/results/Belinsky/N_P/sort/N_P.bwamem.psorted.rmd.bam 	\
+ -o /project/results/Belinsky/N_P/gatk/T_N_P.bwamem.rmd.realign.intervals	\
+ -known /project/data/refs/b37/VCF/Mills_and_1000G_gold_standard.indels.b37.sites.vcf 	\
+ -known /project/data/refs/b37/VCF/1000G_phase1.indels.b37.vcf 	\
+ -l INFO                \
+ -nt 5 	                \
+ --mismatchFraction -1.0
+echo " "
+echo "######### GATK indelrealigner T_P1"
+java -Xmx28g -jar /analyse_bin/GATK/2.4-7/GenomeAnalysisTK.jar \
+ -T IndelRealigner                                      \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta 	\
+ -I /project/results/Belinsky/T_P1/sort/T_P1.bwamem.psorted.rmd.bam 	\
+ -targetIntervals /project/results/Belinsky/N_P/gatk/T_N_P.bwamem.rmd.realign.intervals	\
+ -o /project/results/Belinsky/T_P1/gatk/T_P1.bwamem.rmd.realigned.bam   \
+ -known /project/data/refs/b37/VCF/Mills_and_1000G_gold_standard.indels.b37.sites.vcf \
+ -known /project/data/refs/b37/VCF/1000G_phase1.indels.b37.vcf    \
+ -l INFO 			\
+ --maxReadsInMemory 40000000    \
+ --maxReadsForRealignment 50000 
+cd /project/results/Belinsky/T_P1/gatk/
+echo " "
+echo "##### GATK BaseRecalibrator --> Base Quality Score Recalibrator Step 1/2 T_P1"
+java -Xmx28g -jar /analyse_bin/GATK/2.4-7/GenomeAnalysisTK.jar \
+ -T BaseRecalibrator\
+ -nct 5		\
+ -rf BadCigar 	\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta 	\
+ -I /project/results/Belinsky/T_P1/gatk/T_P1.bwamem.rmd.realigned.bam 	\
+ --knownSites /project/data/refs/b37/VCF/dbsnp_135.b37.vcf       	\
+ --knownSites /project/data/refs/b37/VCF/1000G_omni2.5.b37.sites.vcf 	\
+ -o /project/results/Belinsky/T_P1/gatk/T_P1.bwamem_recal_data.grp          
+echo " "
+echo "##### GATK PrintReads --> Base Quality Score Recalibrator Step 2/2 T_P1"
+java -Xmx28g -jar /analyse_bin/GATK/2.4-7/GenomeAnalysisTK.jar \
+ -T PrintReads \
+ -baq RECALCULATE    	 \
+ -rf NotPrimaryAlignment \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta 	\
+ -I /project/results/Belinsky/T_P1/gatk/T_P1.bwamem.rmd.realigned.bam 	\
+ -BQSR /project/results/Belinsky/T_P1/gatk/T_P1.bwamem_recal_data.grp 	\
+ -o /project/results/Belinsky/T_P1/gatk/T_P1.bwamem.recal.bam               
+echo " "
+################## $$$$$$$$ ATTENTION !!!!!!! $$$$$ ##########################
+echo "##### GATK ReduceReads --> Improving Calling Performance T_P1"
+java -Xmx28g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T ReduceReads \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta    \
+ -I /project/results/Belinsky/T_P1/gatk/T_P1.bwamem.recal.bam    	\
+ -o /project/results/Belinsky/T_P1/gatk/T_P1.bwamem.reduced.bam  
+echo ""
+echo "DONE GATK! NEXT GENOTYPER!!"
+
+cd /project/results/Belinsky/T_P1/genotyper/
+echo "############ START SNP CALLING!"
+echo "##### GATK UnifiedGenotyper --> SNP Calling T_P1"
+java -Xmx28g -jar /analyse_bin/GATK/2.4-7/GenomeAnalysisTK.jar \
+ -T UnifiedGenotyper    \
+ -nt 5          \
+ -glm SNP     	\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta  \
+ -D /project/data/refs/b37/VCF/dbsnp_135.b37.vcf    		\
+ -I /project/results/Belinsky/T_P1/gatk/T_P1.bwamem.reduced.bam \
+ -o /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp_raw.vcf 
+echo " "
+echo "##### GATK UnifiedGenotyper --> VariantRecalibrator T_P1"
+java -Xmx28g -jar /analyse_bin/GATK/2.4-7/GenomeAnalysisTK.jar \
+ -T VariantRecalibrator \
+ -nt 5                  \
+ -mode SNP            	\
+ -an QD -an MQ -an DP -an MQRankSum -an ReadPosRankSum -an FS		\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta 	\
+ -resource:hapmap,known=false,training=true,truth=true,prior=15.0 /project/data/refs/b37/VCF/hapmap_3.3.b37.sites.vcf     \
+ -resource:omni,known=false,training=true,truth=false,prior=12.0 /project/data/refs/b37/VCF/1000G_omni2.5.b37.sites.vcf   \
+ -resource:dbsnp,known=true,training=false,truth=false,prior=6.0 /project/data/refs/b37/VCF/dbsnp_135.b37.vcf             \
+ -input /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp_raw.vcf    	\
+ -recalFile /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp.recal  	\
+ -tranchesFile /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp.tranches \
+ -rscriptFile /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp.r    
+echo " "
+echo "##### GATK UnifiedGenotyper --> Apply Recalibration T_P1"
+java -Xmx28g -jar /analyse_bin/GATK/2.4-7/GenomeAnalysisTK.jar \
+ -T ApplyRecalibration  \
+ -mode SNP            \
+ --ts_filter_level 99.0 \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta       \
+ -input /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp_raw.vcf            \
+ -recalFile /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp.recal          \
+ -tranchesFile /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp.tranches    \
+ -o /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp_recal.vcf       
+more /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp_recal.vcf |grep 'PASS' >/project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp_pass.vcf
+echo " "
+echo "##### GATK VariantFiltration Mapqual: DP >= 13 && MQ >= 43.0 T_P1"
+java -Xmx28g -jar /analyse_bin/GATK/2.4-7/GenomeAnalysisTK.jar \
+ -T VariantFiltration \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta 	\
+ --variant /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp.recal.vcf  \
+ -o /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp_filtered.vcf \
+ --filterExpression "DP >= 13 && MQ >= 43.0" \
+ --filterName "q43cov13" 
+more /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp_filtered.vcf |grep 'q43cov13' >/project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp_q43cov13.vcf
+echo " "
+echo "##### ANNOVAR T_P1"
+mkdir /project/results/Belinsky/T_P1/genotyper/anno
+cd /project/results/Belinsky/T_P1/genotyper/anno
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp_q43cov13.vcf >/project/results/Belinsky/T_P1/genotyper/anno/T_P1.bwamem.snp_q43cov13 
+/analyse_bin/annovar/summarize_gatk_snp.pl --step 1,4,7,9,9 /project/results/Belinsky/T_P1/genotyper/anno/T_P1.bwamem.snp_q43cov13 -outfile T_P1.bwamem.snp_q43cov13 /analyse_bin/annovar/humandb/ 
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.snp_pass.vcf >/project/results/Belinsky/T_P1/genotyper/anno/T_P1.bwamem.snp_pass 
+/analyse_bin/annovar/summarize_gatk_snp.pl --step 1,4,7,9,9 /project/results/Belinsky/T_P1/genotyper/anno/T_P1.bwamem.snp_pass -outfile T_P1.bwamem.snp_pass /analyse_bin/annovar/humandb/ 
+echo " "
+echo "##### DONE SNP ANALYSIS T_P1 #####"
+
+
+
+echo "############ START INDEL CALLING!"
+cd /project/results/Belinsky/T_P1/genotyper/
+echo "##### GATK UnifiedGenotyper --> VariantRecalibrator T_P1"
+java -Xmx28g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantRecalibrator \
+ -nt 5                  \
+ -mode INDEL            \
+ -an DP -an FS -an ReadPosRankSum -an MQRankSum \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -resource:mills,known=false,training=true,truth=true,prior=12.0 /project/data/refs/b37/VCF/Mills_and_1000G_gold_standard.indels.b37.sites.vcf \
+ -resource:dbsnp,known=true,training=false,truth=false,prior=2.0 /project/data/refs/b37/VCF/dbsnp_135.b37.vcf \
+ -input /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel.raw.vcf    	\
+ -recalFile /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel_recal  	\
+ -tranchesFile /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel_tranches    \
+ -rscriptFile /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel_r    
+echo " "
+echo "##### GATK UnifiedGenotyper --> Apply Recalibration T_P1"
+java -Xmx28g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T ApplyRecalibration  \
+ -mode INDEL            \
+ --ts_filter_level 99.0 \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta         \
+ -input /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel.raw.vcf            \
+ -recalFile /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel_recal          \
+ -tranchesFile /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel_tranches    \
+ -o /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel_recal.vcf       
+more /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel_recal.vcf |grep 'PASS' >/project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel_pass.vcf
+echo " "
+echo "##### GATK VariantFiltration Mapqual: DP >= 10 && MQ >= 30.0 T_P1"
+java -Xmx28g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantFiltration \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta 	\
+ --variant /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel_recal.vcf  \
+ -o /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel_filtered.vcf \
+ --filterExpression "DP >= 10 && MQ >= 30.0" \
+ --filterName "q30cov10" 
+more /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel_filtered.vcf |grep 'q30cov10' >/project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel_q30cov10.vcf
+echo " "
+echo "##### ANNOVAR T_P1"
+mkdir /project/results/Belinsky/T_P1/genotyper/anno
+cd /project/results/Belinsky/T_P1/genotyper/anno
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel_q30cov10.vcf >/project/results/Belinsky/T_P1/genotyper/anno/T_P1.bwamem.indel_q30cov10 
+/analyse_bin/annovar/summarize_gatk_indel.pl --remove --step 1,4,7 /project/results/Belinsky/T_P1/genotyper/anno/T_P1.bwamem.indel_q30cov10 -outfile T_P1.bwamem.indel_q30cov10 /analyse_bin/annovar/humandb/ 
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/Belinsky/T_P1/genotyper/T_P1.bwamem.indel_pass.vcf >/project/results/Belinsky/T_P1/genotyper/anno/T_P1.bwamem.indel_pass 
+/analyse_bin/annovar/summarize_gatk_indel.pl --remove --step 1,4,7 /project/results/Belinsky/T_P1/genotyper/anno/T_P1.bwamem.indel_pass -outfile T_P1.bwamem.indel_pass /analyse_bin/annovar/humandb/ 
+echo " "
+echo "##### DONE INDEL ANALYSIS ##### T_P1"
+
+

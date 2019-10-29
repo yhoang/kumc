@@ -1,0 +1,365 @@
+#!/bin/bash
+# Author Yen Hoang, M.Sc.
+# 2013
+
+cd /project/results/me/WGS/CN_FF/bwa
+     echo "####### BWA SAMPE CN_FFgen_L001_R_009 out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L001_R1_009_indexed.sai \
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L001_R2_009_indexed.sai \
+ 	 /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L001_R1_009.fastq.gz 	\
+ 	 /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L001_R2_009.fastq.gz	\
+ 	 >CN_FFgen.bwa.L001_R_009.sam
+     echo "####### BWA SAMPE CN_FFgen_L001_R_011 out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L001_R1_011_indexed.sai \
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L001_R2_011_indexed.sai \
+ 	 /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L001_R1_011.fastq.gz 	\
+ 	 /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L001_R2_011.fastq.gz	\
+ 	 >CN_FFgen.bwa.L001_R_011.sam
+     echo "####### BWA SAMPE CN_FFgen_L001_R_015 out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L001_R1_015_indexed.sai \
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L001_R2_015_indexed.sai \
+ 	 /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L001_R1_015.fastq.gz 	\
+ 	 /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L001_R2_015.fastq.gz	\
+ 	 >CN_FFgen.bwa.L001_R_015.sam 
+     echo "####### BWA SAMPE CN_FFgen_L001_R_020 out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L001_R1_020_indexed.sai \
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L001_R2_020_indexed.sai \
+ 	 /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L001_R1_020.fastq.gz 	\
+ 	 /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L001_R2_020.fastq.gz	\
+ 	 >CN_FFgen.bwa.L001_R_020.sam
+echo "DONE REALIGNING LANE 001 FROM FLOW CELL 1!!!"
+echo ""
+
+##### sth like this happened
+samtools view -uS CN_FFgen.bwa.L001_R_011.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L001_R_011.ssorted
+> [samopen] SAM header is present: 84 sequences.
+> Line 2868450, sequence length 101 vs 89 from CIGAR
+Parse error at line 2868450: CIGAR and sequence length are inconsistent
+## do
+sed '2868450d' CN_FFgen.bwa.L001_R_011.sam >CN_FFgen.bwa.L001_R_011.filtered.sam
+samtools view -uS CN_FFgen.bwa.L001_R_011.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L001_R_011.ssorted
+rm CN_FFgen.bwa.L001_R_011.filtered.sam CN_FFgen.bwa.L001_R_011.sam
+
+samtools view -uS CN_FFgen.bwa.L001_R_009.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L001_R_009.ssorted
+samtools view -uS CN_FFgen.bwa.L001_R_015.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L001_R_015.ssorted
+samtools view -uS CN_FFgen.bwa.L001_R_020.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L001_R_020.ssorted
+
+
+sed '3115459d' CN_FFgen.bwa.L001_R_009.sam >CN_FFgen.bwa.L001_R_009.filtered.sam
+samtools view -uS CN_FFgen.bwa.L001_R_009.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L001_R_009.ssorted
+rm CN_FFgen.bwa.L001_R_009.filtered.sam CN_FFgen.bwa.L001_R_009.sam
+
+sed '2168652d' CN_FFgen.bwa.L001_R_015.sam >CN_FFgen.bwa.L001_R_015.filtered.sam
+samtools view -uS CN_FFgen.bwa.L001_R_015.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L001_R_015.ssorted
+rm CN_FFgen.bwa.L001_R_015.filtered.sam CN_FFgen.bwa.L001_R_015.sam
+
+sed '1844708d' CN_FFgen.bwa.L001_R_020.sam >CN_FFgen.bwa.L001_R_020.filtered.sam
+samtools view -uS CN_FFgen.bwa.L001_R_020.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L001_R_020.ssorted
+rm CN_FFgen.bwa.L001_R_020.filtered.sam CN_FFgen.bwa.L001_R_020.sam
+
+cd /project/results/me/WGS/CN_FF/bwa
+     echo "####### BWA SAMPE CN_FFgen_L002_R_013 out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L002_R1_013_indexed.sai \
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L002_R2_013_indexed.sai \
+ 	 /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L002_R1_013.fastq.gz 	\
+ 	 /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L002_R2_013.fastq.gz	\
+ 	 >CN_FFgen.bwa.L002_R_013.sam
+cd /project/results/me/WGS/CN_FF/bwa
+     echo "####### BWA SAMPE CN_FFgen_L002_R_020 out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L002_R1_020_indexed.sai \
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L002_R2_020_indexed.sai \
+ 	 /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L002_R1_020.fastq.gz 	\
+ 	 /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L002_R2_020.fastq.gz	\
+ 	 >CN_FFgen.bwa.L002_R_020.sam
+cd /project/results/me/WGS/CN_FF/bwa
+     echo "####### BWA SAMPE CN_FFgen_L003_R_004 out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                \
+          /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz         \
+         /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L003_R1_004_indexed.sai \
+         /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L003_R2_004_indexed.sai \
+         /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L003_R1_004.fastq.gz       \
+         /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L003_R2_004.fastq.gz       \
+         >CN_FFgen.bwa.L003_R_004.sam 
+
+     echo "####### BWA SAMPE CN_FFgen_L003_R_014 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+  /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz \
+  /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L003_R1_014_indexed.sai \
+  /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L003_R2_014_indexed.sai \
+  /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L003_R1_014.fastq.gz \
+  /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L003_R2_014.fastq.gz\
+  >CN_FFgen.bwa.L003_R_014.sam
+     echo "####### BWA SAMPE CN_FFgen_L003_R_019 out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                \
+  /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz \
+  /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L003_R1_019_indexed.sai \
+  /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L003_R2_019_indexed.sai \
+  /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L003_R1_019.fastq.gz \
+  /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L003_R2_019.fastq.gz\
+  >CN_FFgen.bwa.L003_R_019.sam
+echo "  "
+echo "DONE BWA REALIGNING LANE 002 and 003 FROM FLOW CELL 1!!!"
+echo ""
+
+samtools view -uS CN_FFgen.bwa.L002_R_013.sam > CN_FFgen.bwa.L002_R_013.ssorted
+samtools view -uS CN_FFgen.bwa.L002_R_020.sam > CN_FFgen.bwa.L002_R_020.ssorted
+samtools view -uS CN_FFgen.bwa.L003_R_004.sam > CN_FFgen.bwa.L003_R_004.ssorted
+samtools view -uS CN_FFgen.bwa.L003_R_014.sam > CN_FFgen.bwa.L003_R_014.ssorted
+samtools view -uS CN_FFgen.bwa.L003_R_019.sam > CN_FFgen.bwa.L003_R_019.ssorted
+
+
+sed '1946501d' CN_FFgen.bwa.L002_R_013.sam >CN_FFgen.bwa.L002_R_013.filtered.sam
+samtools view -uS CN_FFgen.bwa.L002_R_013.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L002_R_013.ssorted
+rm CN_FFgen.bwa.L002_R_013.filtered.sam CN_FFgen.bwa.L002_R_013.sam
+
+sed '1326872d' CN_FFgen.bwa.L002_R_020.sam >CN_FFgen.bwa.L002_R_020.filtered.sam
+samtools view -uS CN_FFgen.bwa.L002_R_020.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L002_R_020.ssorted
+rm CN_FFgen.bwa.L002_R_020.filtered.sam CN_FFgen.bwa.L002_R_020.sam
+
+sed '3496770d' CN_FFgen.bwa.L003_R_004.sam >CN_FFgen.bwa.L003_R_004.filtered.sam
+samtools view -uS CN_FFgen.bwa.L003_R_004.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L003_R_004.ssorted
+rm CN_FFgen.bwa.L003_R_004.filtered.sam CN_FFgen.bwa.L003_R_004.sam
+
+sed '1427252d' CN_FFgen.bwa.L003_R_014.sam >CN_FFgen.bwa.L003_R_014.filtered.sam
+sed '2048380d' CN_FFgen.bwa.L003_R_014.filtered.sam > CN_FFgen.bwa.L003_R_014.filtered2.sam
+sed '2956768d' CN_FFgen.bwa.L003_R_014.filtered2.sam > CN_FFgen.bwa.L003_R_014.filtered3.sam
+sed '3145544d' CN_FFgen.bwa.L003_R_014.filtered3.sam > CN_FFgen.bwa.L003_R_014.filtered4.sam
+
+samtools view -uS CN_FFgen.bwa.L003_R_014.filtered4.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L003_R_014.ssorted
+rm CN_FFgen.bwa.L003_R_014.filtered.sam CN_FFgen.bwa.L003_R_014.sam CN_FFgen.bwa.L003_R_014.filtered2.sam CN_FFgen.bwa.L003_R_014.filtered3.sam CN_FFgen.bwa.L003_R_014.filtered4.sam
+
+sed '3501975d' CN_FFgen.bwa.L003_R_019.sam >CN_FFgen.bwa.L003_R_019.filtered.sam
+sed '3648323d' CN_FFgen.bwa.L003_R_019.filtered.sam >CN_FFgen.bwa.L003_R_019.filtered2.sam
+
+samtools view -uS CN_FFgen.bwa.L003_R_019.filtered2.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L003_R_019.ssorted
+
+rm CN_FFgen.bwa.L003_R_019.filtered.sam CN_FFgen.bwa.L003_R_019.sam CN_FFgen.bwa.L003_R_019.filtered2.sam CN_FFgen.bwa.L003_R_019.ssorted
+
+cd /project/results/me/WGS/CN_FF/bwa
+echo "####### BWA SAMPE CN_FFgen_L004_R_009 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L004_R1_009_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L004_R2_009_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L004_R1_009.fastq.gz 	\
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L004_R2_009.fastq.gz	\
+ >CN_FFgen.bwa.L004_R_009.sam
+echo "####### BWA SAMPE CN_FFgen_L004_R_019 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L004_R1_019_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L004_R2_019_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L004_R1_019.fastq.gz 	\
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L004_R2_019.fastq.gz	\
+ >CN_FFgen.bwa.L004_R_019.sam
+echo "####### BWA SAMPE CN_FFgen_L004_R_021 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L004_R1_021_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L004_R2_021_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L004_R1_021.fastq.gz 	\
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L004_R2_021.fastq.gz	\
+ >CN_FFgen.bwa.L004_R_021.sam
+ 
+cd /project/results/me/WGS/CN_FF/bwa
+echo "####### BWA SAMPE CN_FFgen_L005_R_005 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L005_R1_005_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L005_R2_005_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L005_R1_005.fastq.gz 	\
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L005_R2_005.fastq.gz	\
+ >CN_FFgen.bwa.L005_R_005.sam 
+echo "####### BWA SAMPE CN_FFgen_L005_R_017 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz         \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L005_R1_017_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L005_R2_017_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L005_R1_017.fastq.gz         \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L005_R2_017.fastq.gz        \
+ >CN_FFgen.bwa.L005_R_017.sam
+ 
+echo "####### BWA SAMPE CN_FFgen_L006_R_005 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L006_R1_005_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L006_R2_005_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L006_R1_005.fastq.gz 	\
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L006_R2_005.fastq.gz	\
+ >CN_FFgen.bwa.L006_R_005.sam 
+echo "####### BWA SAMPE CN_FFgen_L006_R_018 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L006_R1_018_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L006_R2_018_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L006_R1_018.fastq.gz 	\
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L006_R2_018.fastq.gz	\
+ >CN_FFgen.bwa.L006_R_018.sam
+ 
+echo "####### BWA SAMPE CN_FFgen_L007_R_004 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L007_R1_004_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L007_R2_004_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L007_R1_004.fastq.gz 	\
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L007_R2_004.fastq.gz	\
+ >CN_FFgen.bwa.L007_R_004.sam
+echo "####### BWA SAMPE CN_FFgen_L007_R_011 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L007_R1_011_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L007_R2_011_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L007_R1_011.fastq.gz 	\
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L007_R2_011.fastq.gz	\
+ >CN_FFgen.bwa.L007_R_011.sam
+echo "####### BWA SAMPE CN_FFgen_L007_R_013 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L007_R1_013_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L007_R2_013_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L007_R1_013.fastq.gz 	\
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L007_R2_013.fastq.gz	\
+ >CN_FFgen.bwa.L007_R_013.sam
+ 
+cd /project/results/me/WGS/CN_FF/bwa
+echo "####### BWA SAMPE CN_FFgen_L008_R_005 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L008_R1_005_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L008_R2_005_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L008_R1_005.fastq.gz 	\
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L008_R2_005.fastq.gz	\
+ >CN_FFgen.bwa.L008_R_005.sam
+echo "####### BWA SAMPE CN_FFgen_L008_R_006 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L008_R1_006_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L008_R2_006_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L008_R1_006.fastq.gz 	\
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L008_R2_006.fastq.gz	\
+ >CN_FFgen.bwa.L008_R_006.sam
+echo "####### BWA SAMPE CN_FFgen_L008_R_012 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L008_R1_012_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L008_R2_012_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L008_R1_012.fastq.gz 	\
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L008_R2_012.fastq.gz	\
+ >CN_FFgen.bwa.L008_R_012.sam
+echo "####### BWA SAMPE CN_FFgen_L008_R_018 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L008_R1_018_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L008_R2_018_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L008_R1_018.fastq.gz 	\
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L008_R2_018.fastq.gz	\
+ >CN_FFgen.bwa.L008_R_018.sam
+echo "####### BWA SAMPE CN_FFgen_L008_R_020 out of L008_R_023 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz         \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L008_R1_020_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen_L008_R2_020_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L008_R1_020.fastq.gz        \
+ /project/data/Illumina/WGS/FlowCell1/CN_FF/CN_FF_TAAGGC_L008_R2_020.fastq.gz        \
+ >CN_FFgen.bwa.L008_R_020.sam
+
+echo "DONE BWA REALIGNING LANE 004 - 008 FROM FLOW CELL 1!!!"
+echo ""
+
+samtools view -uS CN_FFgen.bwa.L004_R_009.sam > CN_FFgen.bwa.L004_R_009.ssorted
+samtools view -uS CN_FFgen.bwa.L004_R_019.sam > CN_FFgen.bwa.L004_R_019.ssorted
+samtools view -uS CN_FFgen.bwa.L004_R_021.sam > CN_FFgen.bwa.L004_R_021.ssorted
+samtools view -uS CN_FFgen.bwa.L005_R_005.sam > CN_FFgen.bwa.L005_R_005.ssorted
+samtools view -uS CN_FFgen.bwa.L005_R_017.sam > CN_FFgen.bwa.L005_R_017.ssorted
+samtools view -uS CN_FFgen.bwa.L006_R_005.sam > CN_FFgen.bwa.L006_R_005.ssorted
+samtools view -uS CN_FFgen.bwa.L006_R_018.sam > CN_FFgen.bwa.L006_R_018.ssorted
+samtools view -uS CN_FFgen.bwa.L007_R_004.sam > CN_FFgen.bwa.L007_R_004.ssorted
+samtools view -uS CN_FFgen.bwa.L007_R_011.sam > CN_FFgen.bwa.L007_R_011.ssorted
+samtools view -uS CN_FFgen.bwa.L007_R_013.sam > CN_FFgen.bwa.L007_R_013.ssorted
+samtools view -uS CN_FFgen.bwa.L008_R_005.sam > CN_FFgen.bwa.L008_R_005.ssorted
+samtools view -uS CN_FFgen.bwa.L008_R_006.sam > CN_FFgen.bwa.L008_R_006.ssorted
+samtools view -uS CN_FFgen.bwa.L008_R_012.sam > CN_FFgen.bwa.L008_R_012.ssorted
+samtools view -uS CN_FFgen.bwa.L008_R_018.sam > CN_FFgen.bwa.L008_R_018.ssorted
+samtools view -uS CN_FFgen.bwa.L008_R_020.sam > CN_FFgen.bwa.L008_R_020.ssorted
+
+sed '3542342d' CN_FFgen.bwa.L004_R_009.sam >CN_FFgen.bwa.L004_R_009.filtered.sam
+samtools view -uS CN_FFgen.bwa.L004_R_009.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L004_R_009.ssorted
+rm CN_FFgen.bwa.L004_R_009.filtered.sam CN_FFgen.bwa.L004_R_009.sam
+
+sed '1121833d' CN_FFgen.bwa.L004_R_019.sam >CN_FFgen.bwa.L004_R_019.filtered.sam
+samtools view -uS CN_FFgen.bwa.L004_R_019.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L004_R_019.ssorted
+rm CN_FFgen.bwa.L004_R_019.filtered.sam CN_FFgen.bwa.L004_R_019.sam
+
+sed '3727602d' CN_FFgen.bwa.L004_R_021.sam >CN_FFgen.bwa.L004_R_021.filtered.sam
+samtools view -uS CN_FFgen.bwa.L004_R_021.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L004_R_021.ssorted
+rm CN_FFgen.bwa.L004_R_021.filtered.sam CN_FFgen.bwa.L004_R_021.sam
+
+sed '1013867d' CN_FFgen.bwa.L005_R_005.sam >CN_FFgen.bwa.L005_R_005.filtered.sam
+samtools view -uS CN_FFgen.bwa.L005_R_005.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L005_R_005.ssorted
+rm CN_FFgen.bwa.L005_R_005.filtered.sam CN_FFgen.bwa.L005_R_005.sam
+
+sed '345595d' CN_FFgen.bwa.L005_R_017.sam >CN_FFgen.bwa.L005_R_017.filtered.sam
+sed '3391649d' CN_FFgen.bwa.L005_R_017.filtered.sam >CN_FFgen.bwa.L005_R_017.filtered2.sam
+samtools view -uS CN_FFgen.bwa.L005_R_017.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L005_R_017.ssorted
+rm CN_FFgen.bwa.L005_R_017.filtered.sam CN_FFgen.bwa.L005_R_017.sam CN_FFgen.bwa.L005_R_017.filtered2.sam
+
+sed '4701168d' CN_FFgen.bwa.L006_R_005.sam >CN_FFgen.bwa.L006_R_005.filtered.sam
+samtools view -uS CN_FFgen.bwa.L006_R_005.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L006_R_005.ssorted
+rm CN_FFgen.bwa.L006_R_005.filtered.sam CN_FFgen.bwa.L006_R_005.sam
+
+sed '1976040d' CN_FFgen.bwa.L006_R_018.sam >CN_FFgen.bwa.L006_R_018.filtered.sam
+samtools view -uS CN_FFgen.bwa.L006_R_018.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L006_R_018.ssorted
+rm CN_FFgen.bwa.L006_R_018.filtered.sam CN_FFgen.bwa.L006_R_018.sam
+
+sed '1725834d' CN_FFgen.bwa.L007_R_004.sam >CN_FFgen.bwa.L007_R_004.filtered.sam
+samtools view -uS CN_FFgen.bwa.L007_R_004.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L007_R_004.ssorted
+rm CN_FFgen.bwa.L007_R_004.filtered.sam CN_FFgen.bwa.L007_R_004.sam
+
+sed '2634724d' CN_FFgen.bwa.L007_R_011.sam >CN_FFgen.bwa.L007_R_011.filtered.sam
+samtools view -uS CN_FFgen.bwa.L007_R_011.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L007_R_011.ssorted
+rm CN_FFgen.bwa.L007_R_011.filtered.sam CN_FFgen.bwa.L007_R_011.sam
+
+sed '2905404d' CN_FFgen.bwa.L007_R_013.sam >CN_FFgen.bwa.L007_R_013.filtered.sam
+samtools view -uS CN_FFgen.bwa.L007_R_013.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L007_R_013.ssorted
+rm CN_FFgen.bwa.L007_R_013.filtered.sam CN_FFgen.bwa.L007_R_013.sam
+
+sed '2247574d' CN_FFgen.bwa.L008_R_005.sam >CN_FFgen.bwa.L008_R_005.filtered.sam
+samtools view -uS CN_FFgen.bwa.L008_R_005.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L008_R_005.ssorted
+rm CN_FFgen.bwa.L008_R_005.filtered.sam CN_FFgen.bwa.L008_R_005.sam
+
+sed '2391709d' CN_FFgen.bwa.L008_R_006.sam >CN_FFgen.bwa.L008_R_006.filtered.sam
+samtools view -uS CN_FFgen.bwa.L008_R_006.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L008_R_006.ssorted
+rm CN_FFgen.bwa.L008_R_006.filtered.sam CN_FFgen.bwa.L008_R_006.sam
+
+sed '2745985d' CN_FFgen.bwa.L008_R_012.sam >CN_FFgen.bwa.L008_R_012.filtered.sam
+samtools view -uS CN_FFgen.bwa.L008_R_012.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L008_R_012.ssorted
+rm CN_FFgen.bwa.L008_R_012.filtered.sam CN_FFgen.bwa.L008_R_012.sam
+
+sed '3864030d' CN_FFgen.bwa.L008_R_018.sam >CN_FFgen.bwa.L008_R_018.filtered.sam
+samtools view -uS CN_FFgen.bwa.L008_R_018.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L008_R_018.ssorted
+rm CN_FFgen.bwa.L008_R_018.filtered.sam CN_FFgen.bwa.L008_R_018.sam
+
+sed '3022224d' CN_FFgen.bwa.L008_R_020.sam >CN_FFgen.bwa.L008_R_020.filtered.sam
+samtools view -uS CN_FFgen.bwa.L008_R_020.filtered.sam | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen.bwa.L008_R_020.ssorted
+rm CN_FFgen.bwa.L008_R_020.filtered.sam CN_FFgen.bwa.L008_R_020.sam
+
+
+
+
+
+
+
+
+

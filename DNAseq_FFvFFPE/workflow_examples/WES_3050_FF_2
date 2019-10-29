@@ -1,0 +1,120 @@
+#!/bin/bash
+# Author Yen Hoang, M.Sc.
+# 2013
+
+cd /project/results/me/WES/3050_FFex/genotyper/
+echo "##### GATK SelectVariants --> Select only InDels 3050_FFex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T SelectVariants \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ --variant /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_raw.vcf \
+ -o /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_select.vcf \
+ -selectType INDEL
+echo " "
+echo "##### GATK HaplotypeCaller--> VariantRecalibrator 3050_FFex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantRecalibrator \
+ -nt 5                  \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -resource:mills,known=false,training=true,truth=true,prior=12.0 /project/data/refs/b37/VCF/Mills_and_1000G_gold_standard.indels.b37.sites.vcf \
+ -resource:dbsnp,known=true,training=false,truth=false,prior=2.0 /project/data/refs/b37/VCF/dbsnp_135.b37.vcf \
+ -an DP -an FS -an ReadPosRankSum -an MQRankSum \
+ -mode INDEL            	\
+ --maxGaussians 4 -percentBad 0.01 -minNumBad 1000 \
+ -input /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_select.vcf	\
+ -recalFile /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_recal  	\
+ -tranchesFile /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_tranches	\
+ -rscriptFile /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_r    
+echo " "
+echo "##### GATK HaplotypeCaller--> Apply Recalibration 3050_FFex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T ApplyRecalibration  \
+ --ts_filter_level 99.0 \
+ -mode INDEL		\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -input /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_select.vcf            \
+ -recalFile /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_recal          \
+ -tranchesFile /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_tranches    \
+ -o /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_recal.vcf      
+more /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_recal.vcf |grep 'PASS' >/project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_pass.vcf
+echo ""
+echo "##### GATK VariantFiltration Mapqual: DP >= 13 && MQ >= 43.0 3050_FFex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantFiltration \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta \
+ --variant /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_recal.vcf	\
+ -o /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_filtered.vcf	\
+ --filterExpression "DP >= 13 && MQ >= 43.0" \
+ --filterName "q43cov13" 
+more /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_filtered.vcf |grep 'q43cov13' >/project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_q43cov13.vcf
+echo ""
+echo "##### ANNOVAR 3050_FFex"
+cd /project/results/me/WES/3050_FFex/genotyper/anno/
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_pass.vcf >3050_FFex.bwa.hapC.indel_pass
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.hapC.indel_q43cov13.vcf >3050_FFex.bwa.hapC.indel_q43cov13
+/analyse_bin/annovar/summarize_gatk_indel.pl --remove --step 1,4,9 3050_FFex.bwa.hapC.indel_pass -outfile 3050_FFex.bwa.hapC.indel_pass /analyse_bin/annovar/humandb/
+/analyse_bin/annovar/summarize_gatk_indel.pl --remove --step 1,4,9 3050_FFex.bwa.hapC.indel_q43cov13 -outfile 3050_FFex.bwa.hapC.indel_q43cov13 /analyse_bin/annovar/humandb/
+echo "DONE WITH INDEL HAPC 3050_FFex"
+
+echo " "
+
+echo "START INDEL ANALYSIS UG bwa_default"
+cd /project/results/me/WES/3050_FFex/genotyper/
+echo "######## GATK UnifiedGenotyper --> INDEL Calling 3050_FFex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T UnifiedGenotyper	\
+ -nt 5			\
+ -glm INDEL		\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -D /project/data/refs/b37/VCF/dbsnp_135.b37.vcf			\
+ -I /project/results/me/WES/3050_FFex/gatk/3050_FFex.bwa.reduced.bam 	\
+ -o /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_raw.vcf	
+echo " "
+echo "##### GATK UnifiedGenotyper --> VariantRecalibrator 3050_FFex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantRecalibrator \
+ -nt 5                  \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -resource:mills,known=false,training=true,truth=true,prior=12.0 /project/data/refs/b37/VCF/Mills_and_1000G_gold_standard.indels.b37.sites.vcf \
+ -resource:dbsnp,known=true,training=false,truth=false,prior=2.0 /project/data/refs/b37/VCF/dbsnp_135.b37.vcf \
+ -an DP -an FS -an ReadPosRankSum -an MQRankSum \
+ -mode INDEL            	\
+ --maxGaussians 4 -percentBad 0.01 -minNumBad 1000 \
+ -input /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_raw.vcf	\
+ -recalFile /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_recal  	\
+ -tranchesFile /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_tranches	\
+ -rscriptFile /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_r    
+echo " "
+echo "##### GATK UnifiedGenotyper --> Apply Recalibration 3050_FFex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T ApplyRecalibration  \
+ --ts_filter_level 99.0 \
+ -mode INDEL		\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -input /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_raw.vcf            \
+ -recalFile /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_recal          \
+ -tranchesFile /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_tranches    \
+ -o /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_recal.vcf      
+more /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_recal.vcf |grep 'PASS' >/project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_pass.vcf
+echo ""
+echo "##### GATK VariantFiltration Mapqual: DP >= 13 && MQ >= 43.0 3050_FFex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantFiltration \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta \
+ --variant /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_recal.vcf	\
+ -o /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_filtered.vcf	\
+ --filterExpression "DP >= 13 && MQ >= 43.0" \
+ --filterName "q43cov13" 
+more /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_filtered.vcf |grep 'q43cov13' >/project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_q43cov13.vcf
+echo ""
+echo "##### ANNOVAR 3050_FFex"
+cd /project/results/me/WES/3050_FFex/genotyper/anno/
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_pass.vcf >3050_FFex.bwa.ug.indel_pass
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/me/WES/3050_FFex/genotyper/3050_FFex.bwa.ug.indel_q43cov13.vcf >3050_FFex.bwa.ug.indel_q43cov13
+/analyse_bin/annovar/summarize_gatk_indel.pl --remove --step 1,4,9 3050_FFex.bwa.ug.indel_pass -outfile 3050_FFex.bwa.ug.indel_pass /analyse_bin/annovar/humandb/
+/analyse_bin/annovar/summarize_gatk_indel.pl --remove --step 1,4,9 3050_FFex.bwa.ug.indel_q43cov13 -outfile 3050_FFex.bwa.ug.indel_q43cov13 /analyse_bin/annovar/humandb/
+echo "DONE WITH INDEL2 3050_FFex"
+echo ""
+echo ""
+echo "DONE WORKFLOW 3050_FFex"
+

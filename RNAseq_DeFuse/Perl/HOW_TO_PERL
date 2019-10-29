@@ -1,0 +1,83 @@
+just need:
+
+chmod +x compare_all.pl 
+chmod +x writeout_myself_bothways.pl
+chmod +x writeout_myself_bothways_number.pl
+chmod +x compare_myself_bothways2.pl
+./compare_all.pl samples > compare_all.txt
+./writeout_myself_bothways.pl samples
+./writeout_myself_bothways_number.pl samples
+./compare_myself_bothways2.pl samples_number >dendrogram.txt
+
+_________________________________________
+chmod +x compare_all.pl 
+chmod +x compare_all_counts.pl
+chmod +x compare_all_counts_number.pl
+chmod +x compare_1on1_automated.pl
+chmod +x compare_everything.pl
+chmod +x compare_everything_bothways.pl
+chmod +x compare_myself_bothways.pl
+chmod +x compare_myself_bothways2.pl
+chmod +x writeout_myself.pl
+chmod +x writeout_myself_bothways.pl
+chmod +x writeout_myself_bothways_number.pl
+
+./compare_all.pl samples > compare_all.txt
+./compare_all_counts.pl samples_number > count_list.txt
+./compare_all_counts_number.pl samples_number >dendro.txt
+./compare_1on1_automated.pl samples >samples_1on1.txt
+./compare_everything.pl samples_number >dendrogram.txt
+./compare_everything_bothways.pl samples_number >dendrogram.txt
+./compare_myself_bothways.pl samples_number >dendrogram.txt
+./compare_myself_bothways2.pl samples_number >dendrogram.txt
+./writeout_myself.pl samples
+./writeout_myself_bothways.pl samples
+./writeout_myself_bothways_number.pl samples
+
+- samples.txt : all 36 samples listed
+- sample_list.txt : all combinations of samples.txt
+
+
+chmod +x compare_everything.pl
+./compare_everything.pl samples_number >dendrogram.txt
+#output for dendrogram in R
+
+chmod +x compare_everything_bothways.pl
+./compare_everything_bothways.pl samples_number >dendrogram.txt
+#output: nxn table with relative match amounts for dendrogram in R
+#plus ordering interchromosomal fusions (chr1 chr2)
+
+chmod +x compare_myself_bothways.pl 
+./compare_myself_bothways.pl samples_number >dendrogram.txt
+#input now from samples already written out
+#output: nxn table with relative match amounts for dendrogram in R
+#no need of hashes
+#and no need of interchromosomal comparison, because writeout_myself_bothways already did
+
+chmod +x compare_myself_bothways2.pl 
+./compare_myself_bothways2.pl samples_number >dendrogram.txt
+#input now from samples already written out
+#output: nxn table with relative match amounts
+#and no need of hashes
+#and no need of interchromosomal comparison, because writeout_myself_bothways already did
+#and ordering intrachromosomal fusions (chr1 chr1)
+
+#chmod +x writeout_myselfpl
+#./writeout_myself.pl samples
+#output >compare_myself/samplex.txt	 writeout chr1 chr2 genestart1 genestart2
+
+#chmod +x ./writeout_myself_bothways.pl
+#./writeout_myself_bothways.pl samples
+#plus ordering interchromosomal fusions (chr1 chr2)
+#output: samples/sample1...36.txt  writeout chr1 chr2 genestart1 genestart2
+
+#chmod +x ./writeout_myself_bothways_number.pl
+#./writeout_myself_bothways_number.pl samples
+#plus ordering interchromosomal fusions (chr1 chr2)
+#output: samples/1...36  writeout chr1 chr2 genestart1 genestart2
+
+./compare_all.pl samples > compare_all.pl
+# output: chr1 chr1 pos1 pos2 of all matches from combining every sample
+
+./compare_1on1_automated.pl samples sample_list
+# output: chr1 chr2 pos1 pos2 from matches of all samples, combined 1vs1 to folder 'compare_1on1'

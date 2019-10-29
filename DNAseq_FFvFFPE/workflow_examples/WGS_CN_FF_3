@@ -1,0 +1,288 @@
+#!/bin/bash
+# Author Yen Hoang, M.Sc.
+# 2013
+
+for j in {1..8}
+do
+for i in {1..9} #lanes
+do
+     echo " "
+     cd /project/results/me/WGS/CN_FF/bwa/
+     echo "####### BWA ALIGN CN_FFgen2_L00${j}_R1_00${i} out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa aln 	\
+ 	 -t 5 	\
+ 	 -l 25 	\
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R1_00${i}.fastq.gz 	\
+ 	 > /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R1_00${i}_indexed.sai	
+     echo "  "
+     echo "####### BWA ALIGN CN_FFgen2_L00${j}_R2_00${i} out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa aln 	\
+ 	 -t 5 	\
+ 	 -l 25 	\
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R2_00${i}.fastq.gz 	\
+ 	 > /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R2_00${i}_indexed.sai	
+     echo "  "
+     echo "####### BWA SAMPE CN_FFgen2_L00${j}_R_00${i} out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R1_00${i}_indexed.sai \
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R2_00${i}_indexed.sai \
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R1_00${i}.fastq.gz 	\
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R2_00${i}.fastq.gz	\
+ 	 |/analyse_bin/samtools/0.1.18/samtools view -uS -		\
+	 | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen2.bwa.L00${j}_R_00${i}.ssorted	
+     echo "  "
+     cd /project/results/me/WGS/CN_FF/sort
+     echo "########## PICARD SORT Lane CN_FFgen2_L00${j} out of L008_R_023 "
+        java -Xmx24g -jar /analyse_bin/picard-tools/1.77/SortSam.jar   	\
+ 	 MAX_RECORDS_IN_RAM=16000000    		\
+ 	 VALIDATION_STRINGENCY=LENIENT 			\
+ 	 SO=coordinate                  		\
+ 	 I=/project/results/me/WGS/CN_FF/bwa/CN_FFgen2.bwa.L00${j}_R_00${i}.ssorted.bam	\
+	 O=/project/results/me/WGS/CN_FF/sort/CN_FFgen2.bwa.L00${j}_R_00${i}.psorted.bam	
+     echo "  "
+     echo "######### PICARD addedreadgroups CN_FFgen2_L00${j}_R1_00${i} out of L008_R_023 "
+        java -Xmx24g -jar /analyse_bin/picard-tools/1.77/AddOrReplaceReadGroups.jar    \
+	 CREATE_INDEX=true	\
+	 RGLB=bar		\
+	 RGPL=Illumina		\
+	 RGPU=TAAGGC		\
+	 RGSM=CN_FF		\
+	 RGDS=Picard-tools	\
+	 RGCN=null		\
+	 MAX_RECORDS_IN_RAM=16000000	\
+	 VALIDATION_STRINGENCY=LENIENT	\
+	 SO=coordinate			\
+	 I=/project/results/me/WGS/CN_FF/sort/CN_FFgen2.bwa.L00${j}_R_00${i}.psorted.bam \
+	 O=/project/results/me/WGS/CN_FF/sort/CN_FFgen2.bwa.L00${j}_R_00${i}.psorted.rg.bam	
+done
+
+for i in {10..22} #lanes
+do
+     echo "  "
+     cd /project/results/me/WGS/CN_FF/bwa/
+     echo "####### BWA ALIGN CN_FFgen2_L00${j}_R1_0${i} out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa aln                                  	\
+ 	 -t 5                                                           \
+ 	 -l 25                                                          \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R1_0${i}.fastq.gz 	\
+ 	 > /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R1_0${i}_indexed.sai 	
+     echo "  "
+     echo "####### BWA ALIGN CN_FFgen2_L00${j}_R2_0${i} out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa aln                                  	\
+ 	 -t 5                                                           \
+ 	 -l 25                                                          \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R2_0${i}.fastq.gz 	\
+ 	 > /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R2_0${i}_indexed.sai	
+     echo "  "
+     echo "####### BWA SAMPE CN_FFgen2_L00${j}_R_0${i} out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                	\
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R1_0${i}_indexed.sai \
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R2_0${i}_indexed.sai \
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R1_0${i}.fastq.gz 	\
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R2_0${i}.fastq.gz	\
+ 	 |/analyse_bin/samtools/0.1.18/samtools view -uS -		\
+	 | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen2.bwa.L00${j}_R_0${i}.ssorted	
+     echo "  "
+     cd /project/results/me/WGS/CN_FF/sort
+     echo "########## PICARD SORT Lane CN_FFgen2_L00${j} out of L008_R_023 "
+        java -Xmx24g -jar /analyse_bin/picard-tools/1.77/SortSam.jar   	\
+ 	 MAX_RECORDS_IN_RAM=16000000    		\
+ 	 VALIDATION_STRINGENCY=LENIENT 			\
+ 	 SO=coordinate                  		\
+ 	 I=/project/results/me/WGS/CN_FF/bwa/CN_FFgen2.bwa.L00${j}_R_0${i}.ssorted.bam	\
+	 O=/project/results/me/WGS/CN_FF/sort/CN_FFgen2.bwa.L00${j}_R_0${i}.psorted.bam	
+     echo "  "
+     echo "######### PICARD addedreadgroups L00${j}_R1_0${i} out of L008_R_023 "
+        java -Xmx24g -jar /analyse_bin/picard-tools/1.77/AddOrReplaceReadGroups.jar    \
+	 CREATE_INDEX=true	\
+	 RGLB=bar		\
+	 RGPL=Illumina		\
+	 RGPU=TAAGGC		\
+	 RGSM=CN_FF		\
+	 RGDS=Picard-tools	\
+	 RGCN=null		\
+	 MAX_RECORDS_IN_RAM=16000000	\
+	 VALIDATION_STRINGENCY=LENIENT	\
+	 SO=coordinate			\
+	 I=/project/results/me/WGS/CN_FF/sort/CN_FFgen2.bwa.L00${j}_R_0${i}.psorted.bam \
+	 O=/project/results/me/WGS/CN_FF/sort/CN_FFgen2.bwa.L00${j}_R_0${i}.psorted.rg.bam 
+done
+echo "###### Done BWA and SORT Lane CN_FFgen2_L00${j}! "
+echo "  "
+done
+
+for j in {2..8}	# #R_023, Lane 6 and 7 dont have that
+do
+     echo " "
+     cd /project/results/me/WGS/CN_FF/bwa/
+     echo "####### BWA ALIGN CN_FFgen2_L00${j}_R1_023 out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa aln 	\
+ 	 -t 5 	\
+ 	 -l 25 	\
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R1_023.fastq.gz 	\
+ 	 > /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R1_023_indexed.sai	
+     echo "  "
+     echo "####### BWA ALIGN CN_FFgen2_L00${j}_R2_023 out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa aln 	\
+ 	 -t 5 	\
+ 	 -l 25 	\
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R2_023.fastq.gz 	\
+ 	 > /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R2_023_indexed.sai	
+     echo "  "
+     echo "####### BWA SAMPE CN_FFgen2_L00${j}_R_023 out of L008_R_023 "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                	\
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R1_023_indexed.sai \
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R2_023_indexed.sai \
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R1_023.fastq.gz 	\
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R2_023.fastq.gz	\
+ 	 |/analyse_bin/samtools/0.1.18/samtools view -uS -		\
+	 | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen2.bwa.L00${j}_R_023.ssorted	
+     echo "  "
+     cd /project/results/me/WGS/CN_FF/sort
+     echo "########## PICARD SORT Lane CN_FFgen2_L00${j} out of L008_R_023 "
+        java -Xmx24g -jar /analyse_bin/picard-tools/1.77/SortSam.jar   	\
+ 	 MAX_RECORDS_IN_RAM=16000000    		\
+ 	 VALIDATION_STRINGENCY=LENIENT 			\
+ 	 SO=coordinate                  		\
+ 	 I=/project/results/me/WGS/CN_FF/bwa/CN_FFgen2.bwa.L00${j}_R_023.ssorted.bam	\
+	 O=/project/results/me/WGS/CN_FF/sort/CN_FFgen2.bwa.L00${j}_R_023.psorted.bam	
+     echo "  "
+     echo "######### PICARD addedreadgroups CN_FFgen2_L00${j}_R1_023 out of L008_R_023 "
+        java -Xmx24g -jar /analyse_bin/picard-tools/1.77/AddOrReplaceReadGroups.jar    \
+	 CREATE_INDEX=true	\
+	 RGLB=bar		\
+	 RGPL=Illumina		\
+	 RGPU=TAAGGC		\
+	 RGSM=CN_FF		\
+	 RGDS=Picard-tools	\
+	 RGCN=null		\
+	 MAX_RECORDS_IN_RAM=16000000	\
+	 VALIDATION_STRINGENCY=LENIENT	\
+	 SO=coordinate			\
+	 I=/project/results/me/WGS/CN_FF/sort/CN_FFgen2.bwa.L00${j}_R_023.psorted.bam \
+	 O=/project/results/me/WGS/CN_FF/sort/CN_FFgen2.bwa.L00${j}_R_023.psorted.rg.bam	
+done
+echo " DONE LOOPING R_023! "
+echo " "
+for j in {3..4}	# #R_024
+do
+     echo " "
+     cd /project/results/me/WGS/CN_FF/bwa/
+     echo "####### BWA ALIGN CN_FFgen2_L00${j}_R1_024 out of L008_R_024 "
+     /analyse_bin/bwa/0.7.3/bwa aln 	\
+ 	 -t 5 	\
+ 	 -l 25 	\
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R1_024.fastq.gz 	\
+ 	 > /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R1_024_indexed.sai	
+     echo "  "
+     echo "####### BWA ALIGN CN_FFgen2_L00${j}_R2_024 out of L008_R_024 "
+     /analyse_bin/bwa/0.7.3/bwa aln 	\
+ 	 -t 5 	\
+ 	 -l 25 	\
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R2_024.fastq.gz 	\
+ 	 > /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R2_024_indexed.sai	
+     echo "  "
+     echo "####### BWA SAMPE CN_FFgen2_L00${j}_R_024 out of L008_R_024 "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                	\
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R1_024_indexed.sai \
+ 	 /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L00${j}_R2_024_indexed.sai \
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R1_024.fastq.gz 	\
+ 	 /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L00${j}_R2_024.fastq.gz	\
+ 	 |/analyse_bin/samtools/0.1.18/samtools view -uS -		\
+	 | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen2.bwa.L00${j}_R_024.ssorted	
+     echo "  "
+     cd /project/results/me/WGS/CN_FF/sort
+     echo "########## PICARD SORT Lane CN_FFgen2_L00${j} out of L008_R_024 "
+        java -Xmx24g -jar /analyse_bin/picard-tools/1.77/SortSam.jar   	\
+ 	 MAX_RECORDS_IN_RAM=16000000    		\
+ 	 VALIDATION_STRINGENCY=LENIENT 			\
+ 	 SO=coordinate                  		\
+ 	 I=/project/results/me/WGS/CN_FF/bwa/CN_FFgen2.bwa.L00${j}_R_024.ssorted.bam	\
+	 O=/project/results/me/WGS/CN_FF/sort/CN_FFgen2.bwa.L00${j}_R_024.psorted.bam	
+     echo "  "
+     echo "######### PICARD addedreadgroups CN_FFgen2_L00${j}_R1_024 out of L008_R_024 "
+        java -Xmx24g -jar /analyse_bin/picard-tools/1.77/AddOrReplaceReadGroups.jar    \
+	 CREATE_INDEX=true	\
+	 RGLB=bar		\
+	 RGPL=Illumina		\
+	 RGPU=TAAGGC		\
+	 RGSM=CN_FF		\
+	 RGDS=Picard-tools	\
+	 RGCN=null		\
+	 MAX_RECORDS_IN_RAM=16000000	\
+	 VALIDATION_STRINGENCY=LENIENT	\
+	 SO=coordinate			\
+	 I=/project/results/me/WGS/CN_FF/sort/CN_FFgen2.bwa.L00${j}_R_024.psorted.bam \
+	 O=/project/results/me/WGS/CN_FF/sort/CN_FFgen2.bwa.L00${j}_R_024.psorted.rg.bam	
+done
+echo " DONE L003/L004_R_024! "
+echo " "
+
+### L006_R_024
+cd /project/results/me/WGS/CN_FF/bwa/
+echo "####### BWA ALIGN CN_FFgen2_L006_R_024 "
+/analyse_bin/bwa/0.7.3/bwa aln 	\
+ -t 5 	\
+ -l 25 	\
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L006_R1_024.fastq.gz 	\
+ > /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L006_R1_024_indexed.sai	
+echo "  "
+echo "####### BWA ALIGN CN_FFgen2_L006_R_024 "
+/analyse_bin/bwa/0.7.3/bwa aln 	\
+ -t 5 	\
+ -l 25 	\
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L006_R2_024.fastq.gz 	\
+ > /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L006_R2_024_indexed.sai	
+echo "  "
+echo "####### BWA SAMPE CN_FFgen2_L006_R_024 "
+/analyse_bin/bwa/0.7.3/bwa sampe                                \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L006_R1_024_indexed.sai \
+ /project/results/me/WGS/CN_FF/bwa/CN_FFgen2_L006_R2_024_indexed.sai \
+ /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L006_R1_024.fastq.gz 	\
+ /project/data/Illumina/WGS/FlowCell2/CN_FF/CN_FF_TAAGGC_L006_R2_024.fastq.gz	\
+ |/analyse_bin/samtools/0.1.18/samtools view -uS -		\
+ | /analyse_bin/samtools/0.1.18/samtools sort - CN_FFgen2.bwa.L006_R_024.ssorted	
+echo "  "
+cd /project/results/me/WGS/CN_FF/sort
+echo "########## PICARD SORT Lane CN_FFgen2_L006_R_024 "
+java -Xmx24g -jar /analyse_bin/picard-tools/1.77/SortSam.jar   	\
+ MAX_RECORDS_IN_RAM=16000000    		\
+ VALIDATION_STRINGENCY=LENIENT 			\
+ SO=coordinate                  		\
+ I=/project/results/me/WGS/CN_FF/bwa/CN_FFgen2.bwa.L006_R_024.ssorted.bam	\
+ O=/project/results/me/WGS/CN_FF/sort/CN_FFgen2.bwa.L006_R_024.psorted.bam	
+echo "  "
+echo "######### PICARD addedreadgroups CN_FFgen2_L006_R_024 "
+java -Xmx24g -jar /analyse_bin/picard-tools/1.77/AddOrReplaceReadGroups.jar    \
+ CREATE_INDEX=true	\
+ RGLB=bar		\
+ RGPL=Illumina		\
+ RGPU=TAAGGC		\
+ RGSM=CN_FF	\
+ RGDS=Picard-tools	\
+ RGCN=null		\
+ MAX_RECORDS_IN_RAM=16000000	\
+ VALIDATION_STRINGENCY=LENIENT	\
+ SO=coordinate			\
+ I=/project/results/me/WGS/CN_FF/sort/CN_FFgen2.bwa.L006_R_024.psorted.bam \
+ O=/project/results/me/WGS/CN_FF/sort/CN_FFgen2.bwa.L006_R_024.psorted.rg.bam	
+ echo "DONE L006_R_024 "
+#### DONE L006_R_024
+echo "  "
+echo "DONE BWA AND SORTING WITH ALL LANES FROM FLOW CELL 2!!!"
+echo ""

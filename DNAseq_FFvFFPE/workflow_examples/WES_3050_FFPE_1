@@ -1,0 +1,641 @@
+#!/bin/bash
+# Author Yen Hoang, M.Sc.
+# 2013
+
+mkdir /project/results/me/WES/3050_FFPEex/bwa
+mkdir /project/results/me/WES/3050_FFPEex/sort
+mkdir /project/results/me/WES/3050_FFPEex/gatk
+mkdir /project/results/me/WES/3050_FFPEex/genotyper
+
+# after bwa reference indexing do assembling
+for i in {1..6} #lanes
+do
+     echo " " >>~/watch_3050_FFPEex_bwa.log
+     cd /project/results/me/WES/3050_FFPEex/bwa/
+     echo "####### BWA ALIGN 3050_FFPEex_L005_R1_00${i} out of L005_R_006 GARun "
+     /analyse_bin/bwa/0.7.3/bwa aln 	\
+ 	 -t 5 	\
+ 	 -l 25 	\
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WES/3050_FFPE/GA/3050_FFPE_AGGCAG_L005_R1_00${i}.fastq.gz 	\
+ 	 > /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L005_R1_00${i}_indexed.sai	
+     echo "  "
+     echo "####### BWA ALIGN 3050_FFPEex_L005_R2_00${i} out of L005_R_006 GARun "
+     /analyse_bin/bwa/0.7.3/bwa aln 	\
+ 	 -t 5 	\
+ 	 -l 25 	\
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WES/3050_FFPE/GA/3050_FFPE_AGGCAG_L005_R2_00${i}.fastq.gz 	\
+ 	 > /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L005_R2_00${i}_indexed.sai	
+     echo "  "
+     echo "####### BWA SAMPE 3050_FFPEex_L005_R_00${i} out of L005_R_006 GARun "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ 	 /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L005_R1_00${i}_indexed.sai \
+ 	 /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L005_R2_00${i}_indexed.sai \
+ 	 /project/data/Illumina/WES/3050_FFPE/GA/3050_FFPE_AGGCAG_L005_R1_00${i}.fastq.gz 	\
+ 	 /project/data/Illumina/WES/3050_FFPE/GA/3050_FFPE_AGGCAG_L005_R2_00${i}.fastq.gz	\
+ 	 |/analyse_bin/samtools/0.1.18/samtools view -uS -		\
+	 | /analyse_bin/samtools/0.1.18/samtools sort - 3050_FFPEex.bwa.L005_R_00${i}.ssorted	
+     echo "  "
+     cd /project/results/me/WES/3050_FFPEex/sort
+     echo "########## PICARD SORT Lane 3050_FFPEex_L005 out of L005_R_006 GARun "
+        java -Xmx12g -jar /analyse_bin/picard-tools/1.77/SortSam.jar   	\
+ 	 MAX_RECORDS_IN_RAM=16000000    		\
+ 	 VALIDATION_STRINGENCY=LENIENT 			\
+ 	 SO=coordinate                  		\
+ 	 I=/project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex.bwa.L005_R_00${i}.ssorted.bam	\
+	 O=/project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.L005_R_00${i}.psorted.bam	
+     echo "  "
+     echo "######### PICARD addedreadgroups 3050_FFPEex_L005_R1_00${i} out of L005_R_006 GARun "
+        java -Xmx12g -jar /analyse_bin/picard-tools/1.77/AddOrReplaceReadGroups.jar    \
+	 CREATE_INDEX=true	\
+	 RGLB=bar		\
+	 RGPL=Illumina		\
+	 RGPU=AGGCAG		\
+	 RGSM=3050_FFPEex	\
+	 RGDS=Picard-tools	\
+	 RGCN=null		\
+	 MAX_RECORDS_IN_RAM=16000000	\
+	 VALIDATION_STRINGENCY=LENIENT	\
+	 SO=coordinate			\
+	 I=/project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.L005_R_00${i}.psorted.bam \
+	 O=/project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.L005_R_00${i}.psorted.rg.bam	
+done
+echo "###### Done BWA and SORT Lane 3050_FFPEex_L005 GARun! "
+
+for i in {1..8} #lanes
+do
+     echo "  "
+     cd /project/results/me/WES/3050_FFPEex/bwa/
+     echo "####### BWA ALIGN 3050_FFPEex_L006_R1_00${i} out of L006_R_008 HiSeq "
+     /analyse_bin/bwa/0.7.3/bwa aln                                  \
+ 	 -t 5                                                           \
+ 	 -l 25                                                          \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WES/3050_FFPE/HiSeq/3050_FFPE_AGGCAG_L006_R1_00${i}.fastq.gz 	\
+ 	 > /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L006_R1_00${i}_indexed.sai 	
+     echo "  "
+     echo "####### BWA ALIGN 3050_FFPEex_L006_R2_00${i} out of L006_R_008 HiSeq "
+     /analyse_bin/bwa/0.7.3/bwa aln                                  \
+ 	 -t 5                                                           \
+ 	 -l 25                                                          \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WES/3050_FFPE/HiSeq/3050_FFPE_AGGCAG_L006_R2_00${i}.fastq.gz 	\
+ 	 > /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L006_R2_00${i}_indexed.sai	
+     echo "  "
+     echo "####### BWA SAMPE 3050_FFPEex_L006_R_00${i} out of L006_R_008 HiSeq "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ 	 /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L006_R1_00${i}_indexed.sai \
+ 	 /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L006_R2_00${i}_indexed.sai \
+ 	 /project/data/Illumina/WES/3050_FFPE/HiSeq/3050_FFPE_AGGCAG_L006_R1_00${i}.fastq.gz 	\
+ 	 /project/data/Illumina/WES/3050_FFPE/HiSeq/3050_FFPE_AGGCAG_L006_R2_00${i}.fastq.gz	\
+ 	 |/analyse_bin/samtools/0.1.18/samtools view -uS -		\
+	 | /analyse_bin/samtools/0.1.18/samtools sort - 3050_FFPEex.bwa.L006_R_00${i}.ssorted	
+     echo "  "
+     cd /project/results/me/WES/3050_FFPEex/sort
+     echo "########## PICARD SORT Lane 3050_FFPEex_L006 out of L006_R_008 HiSeq "
+        java -Xmx12g -jar /analyse_bin/picard-tools/1.77/SortSam.jar   	\
+ 	 MAX_RECORDS_IN_RAM=16000000    		\
+ 	 VALIDATION_STRINGENCY=LENIENT 			\
+ 	 SO=coordinate                  		\
+ 	 I=/project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex.bwa.L006_R_00${i}.ssorted.bam	\
+	 O=/project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.L006_R_00${i}.psorted.bam	
+     echo "  "
+     echo "######### PICARD addedreadgroups L006_R1_00${i} out of L006_R_008 HiSeq "
+        java -Xmx12g -jar /analyse_bin/picard-tools/1.77/AddOrReplaceReadGroups.jar    \
+	 CREATE_INDEX=true	\
+	 RGLB=bar		\
+	 RGPL=Illumina		\
+	 RGPU=AGGCAG		\
+	 RGSM=3050_FFPEex	\
+	 RGDS=Picard-tools	\
+	 RGCN=null		\
+	 MAX_RECORDS_IN_RAM=16000000	\
+	 VALIDATION_STRINGENCY=LENIENT	\
+	 SO=coordinate			\
+	 I=/project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.L006_R_00${i}.psorted.bam \
+	 O=/project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.L006_R_00${i}.psorted.rg.bam 
+done
+echo "###### Done BWA and SORT Lane 3050_FFPEex_L006 HiSeq! "
+
+for i in {1..9} #lanes
+do
+     echo "  "
+     cd /project/results/me/WES/3050_FFPEex/bwa/
+     echo "####### BWA ALIGN 3050_FFPEex_L007_R1_00${i} out of L007_R_020 HiSeq "
+     /analyse_bin/bwa/0.7.3/bwa aln                                  \
+ 	 -t 5                                                           \
+ 	 -l 25                                                          \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WES/3050_FFPE/L5/3050_FFPE_AGGCAG_L007_R1_00${i}.fastq.gz 	\
+ 	 > /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L007_R1_00${i}_indexed.sai 	
+     echo "  "
+     echo "####### BWA ALIGN 3050_FFPEex_L007_R2_00${i} out of L007_R_020 HiSeq "
+     /analyse_bin/bwa/0.7.3/bwa aln                                  \
+ 	 -t 5                                                           \
+ 	 -l 25                                                          \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WES/3050_FFPE/L5/3050_FFPE_AGGCAG_L007_R2_00${i}.fastq.gz 	\
+ 	 > /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L007_R2_00${i}_indexed.sai	
+     echo "  "
+     echo "####### BWA SAMPE 3050_FFPEex_L007_R_00${i} out of L007_R_020 HiSeq "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ 	 /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L007_R1_00${i}_indexed.sai \
+ 	 /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L007_R2_00${i}_indexed.sai \
+ 	 /project/data/Illumina/WES/3050_FFPE/L5/3050_FFPE_AGGCAG_L007_R1_00${i}.fastq.gz 	\
+ 	 /project/data/Illumina/WES/3050_FFPE/L5/3050_FFPE_AGGCAG_L007_R2_00${i}.fastq.gz	\
+ 	 |/analyse_bin/samtools/0.1.18/samtools view -uS -		\
+	 | /analyse_bin/samtools/0.1.18/samtools sort - 3050_FFPEex.bwa.L007_R_00${i}.ssorted	
+     echo "  "
+     cd /project/results/me/WES/3050_FFPEex/sort
+     echo "########## PICARD SORT Lane 3050_FFPEex_L007 out of L007_R_020 HiSeq "
+        java -Xmx24g -jar /analyse_bin/picard-tools/1.77/SortSam.jar   	\
+ 	 MAX_RECORDS_IN_RAM=16000000    		\
+ 	 VALIDATION_STRINGENCY=LENIENT 			\
+ 	 SO=coordinate                  		\
+ 	 I=/project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex.bwa.L007_R_00${i}.ssorted.bam	\
+	 O=/project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.L007_R_00${i}.psorted.bam	
+     echo "  "
+     echo "######### PICARD addedreadgroups L007_R1_00${i} out of L007_R_020 HiSeq "
+        java -Xmx24g -jar /analyse_bin/picard-tools/1.77/AddOrReplaceReadGroups.jar    \
+	 CREATE_INDEX=true	\
+	 RGLB=bar		\
+	 RGPL=Illumina		\
+	 RGPU=AGGCAG		\
+	 RGSM=3050_FFPE		\
+	 RGDS=Picard-tools	\
+	 RGCN=null		\
+	 MAX_RECORDS_IN_RAM=16000000	\
+	 VALIDATION_STRINGENCY=LENIENT	\
+	 SO=coordinate			\
+	 I=/project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.L007_R_00${i}.psorted.bam \
+	 O=/project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.L007_R_00${i}.psorted.rg.bam	
+done
+echo "  "
+
+
+for i in {10..20} #lanes
+do
+     echo "  "
+     cd /project/results/me/WES/3050_FFPEex/bwa/
+     echo "####### BWA ALIGN 3050_FFPEex_L007_R1_0${i} out of L007_R_020 HiSeq "
+     /analyse_bin/bwa/0.7.3/bwa aln                                  \
+ 	 -t 5                                                           \
+ 	 -l 25                                                          \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WES/3050_FFPE/L5/3050_FFPE_AGGCAG_L007_R1_0${i}.fastq.gz 	\
+ 	 > /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L007_R1_0${i}_indexed.sai 	
+     echo "  "
+     echo "####### BWA ALIGN 3050_FFPEex_L007_R2_0${i} out of L007_R_020 HiSeq "
+     /analyse_bin/bwa/0.7.3/bwa aln                                  \
+ 	 -t 5                                                           \
+ 	 -l 25                                                          \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz		\
+ 	 /project/data/Illumina/WES/3050_FFPE/L5/3050_FFPE_AGGCAG_L007_R2_0${i}.fastq.gz 	\
+ 	 > /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L007_R2_0${i}_indexed.sai	
+     echo "  "
+     echo "####### BWA SAMPE 3050_FFPEex_L007_R_0${i} out of L007_R_020 HiSeq "
+     /analyse_bin/bwa/0.7.3/bwa sampe                                \
+ 	 /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz 	\
+ 	 /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L007_R1_0${i}_indexed.sai \
+ 	 /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L007_R2_0${i}_indexed.sai \
+ 	 /project/data/Illumina/WES/3050_FFPE/L5/3050_FFPE_AGGCAG_L007_R1_0${i}.fastq.gz 	\
+ 	 /project/data/Illumina/WES/3050_FFPE/L5/3050_FFPE_AGGCAG_L007_R2_0${i}.fastq.gz	\
+ 	 |/analyse_bin/samtools/0.1.18/samtools view -uS -		\
+	 | /analyse_bin/samtools/0.1.18/samtools sort - 3050_FFPEex.bwa.L007_R_0${i}.ssorted	
+     echo "  "
+     cd /project/results/me/WES/3050_FFPEex/sort
+     echo "########## PICARD SORT Lane 3050_FFPEex_L007 out of L007_R_020 HiSeq "
+        java -Xmx24g -jar /analyse_bin/picard-tools/1.77/SortSam.jar   	\
+ 	 MAX_RECORDS_IN_RAM=16000000    		\
+ 	 VALIDATION_STRINGENCY=LENIENT 			\
+ 	 SO=coordinate                  		\
+ 	 I=/project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex.bwa.L007_R_0${i}.ssorted.bam	\
+	 O=/project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.L007_R_0${i}.psorted.bam	
+     echo "  "
+     echo "######### PICARD addedreadgroups L007_R1_0${i} out of L007_R_020 HiSeq "
+        java -Xmx24g -jar /analyse_bin/picard-tools/1.77/AddOrReplaceReadGroups.jar    \
+	 CREATE_INDEX=true	\
+	 RGLB=bar		\
+	 RGPL=Illumina		\
+	 RGPU=AGGCAG		\
+	 RGSM=3050_FFPE		\
+	 RGDS=Picard-tools	\
+	 RGCN=null		\
+	 MAX_RECORDS_IN_RAM=16000000	\
+	 VALIDATION_STRINGENCY=LENIENT	\
+	 SO=coordinate			\
+	 I=/project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.L007_R_0${i}.psorted.bam \
+	 O=/project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.L007_R_0${i}.psorted.rg.bam	
+done
+echo "  "
+### PROB with L007_R_016
+/analyse_bin/bwa/0.7.3/bwa aln    \
+ -t 5    \
+ -l 25   \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz \
+ /project/data/Illumina/WES/3050_FFPE/L5/3050_FFPE_AGGCAG_L007_R1_016.fastq.gz \
+ > /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L007_R1_016_indexed.sai 
+echo "  "
+echo "####### BWA ALIGN 3050_FFPEex_L007_R2_016 out of L007_R_020 HiSeq "
+/analyse_bin/bwa/0.7.3/bwa aln    \
+ -t 5    \
+ -l 25   \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz \
+ /project/data/Illumina/WES/3050_FFPE/L5/3050_FFPE_AGGCAG_L007_R2_016.fastq.gz \
+ > /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L007_R2_016_indexed.sai
+/analyse_bin/bwa/0.7.3/bwa sampe \
+ /project/data/refs/b37/BWAIndex/human_g1k_v37.fasta.gz \
+ /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L007_R1_016_indexed.sai \
+ /project/results/me/WES/3050_FFPEex/bwa/3050_FFPEex_L007_R2_016_indexed.sai \
+ /project/data/Illumina/WES/3050_FFPE/L5/3050_FFPE_AGGCAG_L007_R1_016.fastq.gz \
+ /project/data/Illumina/WES/3050_FFPE/L5/3050_FFPE_AGGCAG_L007_R2_016.fastq.gz \
+ >  3050_FFPE_AGGCAG_L007_R_016.sam
+cat 3050_FFPE_AGGCAG_L007_R_016.sam | awk '{if (p!=286617) print $0;p++}' > 3050_FFPEex_AGGCAG_L007_R_016_fixed.sam 
+
+ /analyse_bin/samtools/0.1.18/samtools view -uS 3050_FFPEex_AGGCAG_L007_R_016_fixed.sam \
+ |/analyse_bin/samtools/0.1.18/samtools sort - 3050_FFPEex.bwa.L007_R_016.ssorted
+
+echo " DONE BWA 16"
+echo " DONE BWA! "
+
+echo "  "
+cd /project/results/me/WES/3050_FFPEex/sort
+echo "####### SAMTOOLS merge 3050_FFPEex "
+/analyse_bin/samtools/0.1.18/samtools merge \
+ -f 3050_FFPEex.bwa.merged2.bam \
+ 3050_FFPEex.bwa.L005_R_001.psorted.rg.bam \
+ 3050_FFPEex.bwa.L005_R_002.psorted.rg.bam \
+ 3050_FFPEex.bwa.L005_R_003.psorted.rg.bam \
+ 3050_FFPEex.bwa.L005_R_004.psorted.rg.bam \
+ 3050_FFPEex.bwa.L005_R_005.psorted.rg.bam \
+ 3050_FFPEex.bwa.L005_R_006.psorted.rg.bam \
+ 3050_FFPEex.bwa.L006_R_001.psorted.rg.bam \
+ 3050_FFPEex.bwa.L006_R_002.psorted.rg.bam \
+ 3050_FFPEex.bwa.L006_R_003.psorted.rg.bam \
+ 3050_FFPEex.bwa.L006_R_004.psorted.rg.bam \
+ 3050_FFPEex.bwa.L006_R_005.psorted.rg.bam \
+ 3050_FFPEex.bwa.L006_R_006.psorted.rg.bam \
+ 3050_FFPEex.bwa.L006_R_007.psorted.rg.bam \
+ 3050_FFPEex.bwa.L006_R_008.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_001.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_002.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_003.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_004.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_005.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_006.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_007.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_008.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_009.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_010.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_011.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_012.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_013.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_014.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_015.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_016.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_017.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_018.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_019.psorted.rg.bam \
+ 3050_FFPEex.bwa.L007_R_020.psorted.rg.bam 
+echo "  "
+echo "####### PICARD-TOOLS DeleteDuplicates after Samtools merge and picard added rg 3050_FFPEex "
+java -Xmx24g -jar /analyse_bin/picard-tools/1.77/MarkDuplicates.jar \
+ REMOVE_DUPLICATES=true 			\
+ CREATE_INDEX=true 				\
+ VALIDATION_STRINGENCY=LENIENT 			\
+ MAX_SEQUENCES_FOR_DISK_READ_ENDS_MAP=24000000 	\
+ MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=23000000 	\
+ I=/project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.merged2.bam 	\
+ O=/project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.rmd2.bam 	\
+ M=/project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.metrics2.txt	
+echo "  "
+echo "  "
+cd /project/results/me/WES/3050_FFPEex/gatk/
+echo "######## GATK realignertargetcreator 3050_FFPEex "
+java -Xmx12g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar 	\
+ -T RealignerTargetCreator 					\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -known /project/data/refs/b37/VCF/Mills_and_1000G_gold_standard.indels.b37.sites.vcf 	\
+ -known /project/data/refs/b37/VCF/1000G_phase1.indels.b37.vcf 	\
+ -I /project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.rmd.bam 	\
+ -o /project/results/me/WES/3050_FFPEex/gatk/3050_FFPEex.bwa.rmd.realign.intervals		\
+ -l INFO 							\
+ -nt 5 								\
+ -maxInterval 500 						\
+ -minReads 4 							\
+ -mismatch 0.0 							\
+ -window 10	
+echo "  "
+echo "####### GATK indelrealigner 3050_FFPEex "
+java -Xmx12g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar	\
+ -T IndelRealigner 						\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -known /project/data/refs/b37/VCF/Mills_and_1000G_gold_standard.indels.b37.sites.vcf \
+ -known /project/data/refs/b37/VCF/1000G_phase1.indels.b37.vcf 	\
+ -I /project/results/me/WES/3050_FFPEex/sort/3050_FFPEex.bwa.rmd.bam 	\
+ -o /project/results/me/WES/3050_FFPEex/gatk/3050_FFPEex.bwa.rmd.realigned.bam \
+ -targetIntervals /project/results/me/WES/3050_FFPEex/gatk/3050_FFPEex.bwa.rmd.realign.intervals	\
+ -l INFO 						\
+ -LOD 5.0 						\
+ -model USE_READS 					\
+ -entropy 0.15 						\
+ -maxInMemory 16000000 					\
+ -maxIsize 3000 					\
+ -maxPosMove 200 					\
+ -maxConsensuses 30 					\
+ -greedy 120 						\
+ -maxReads 20000 					\
+ -compress 5 	
+echo "  "
+echo "######## GATK BaseRecalibrator --> Base Quality Score Recalibrator Step 1/2 3050_FFPEex "
+java -Xmx12g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar\
+ -T BaseRecalibrator    \
+ -nct 5 \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -knownSites /project/data/refs/b37/VCF/1000G_omni2.5.b37.sites.vcf	\
+ -knownSites /project/data/refs/b37/VCF/dbsnp_135.b37.vcf		\
+ -I /project/results/me/WES/3050_FFPEex/gatk/3050_FFPEex.bwa.rmd.realigned.bam\
+ -o /project/results/me/WES/3050_FFPEex/gatk/3050_FFPEex.recal_data.grp	
+echo "  "
+echo "######## GATK PrintReads --> Base Quality Score Recalibrator Step 2/2 3050_FFPEex "
+java -Xmx12g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T PrintReads  \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -BQSR /project/results/me/WES/3050_FFPEex/gatk/3050_FFPEex.recal_data.grp	\
+ -I /project/results/me/WES/3050_FFPEex/gatk/3050_FFPEex.bwa.rmd.realigned.bam\
+ -o /project/results/me/WES/3050_FFPEex/gatk/3050_FFPEex.bwa.recal.bam	\
+ -baq RECALCULATE 	
+echo "  "
+echo "##### GATK ReduceReads --> Improving Calling Performance 3050_FFPEex "
+java -Xmx12g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T ReduceReads \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -I /project/results/me/WES/3050_FFPEex/gatk/3050_FFPEex.bwa.recal.bam	\
+ -o /project/results/me/WES/3050_FFPEex/gatk/3050_FFPEex.bwa.reduced.bam  	
+echo " "
+
+
+mkdir /project/results/me/WES/3050_FFPEex/genotyper/anno
+
+cd /project/results/me/WES/3050_FFPEex/genotyper/
+echo ""
+echo "START SNP/INDEL2 ANALYSIS bwa_default"
+cd /project/results/me/WES/3050_FFPEex/genotyper/
+echo "######## GATK UnifiedGenotyper --> SNP/INDEL Calling 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T UnifiedGenotyper	\
+ -glm BOTH		\
+ -nt 5 			\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -D /project/data/refs/b37/VCF/dbsnp_135.b37.vcf			\
+ -I /project/results/me/WES/3050_FFPEex/gatk/3050_FFPEex.bwa.reduced.bam 	\
+ -o /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.raw.vcf	
+echo " "
+echo "##### GATK SelectVariants --> Select only SNPs 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T SelectVariants \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ --variant /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.raw.vcf \
+ -o /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_raw.vcf \
+ -selectType SNP
+echo ""
+echo "##### GATK UnifiedGenotyper --> VariantRecalibrator 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantRecalibrator \
+ -nt 5                  \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -resource:hapmap,known=false,training=true,truth=true,prior=15.0 /project/data/refs/b37/VCF/hapmap_3.3.b37.sites.vcf     \
+ -resource:omni,known=false,training=true,truth=false,prior=12.0 /project/data/refs/b37/VCF/1000G_omni2.5.b37.sites.vcf   \
+ -resource:dbsnp,known=true,training=false,truth=false,prior=6.0 /project/data/refs/b37/VCF/dbsnp_135.b37.vcf             \
+ -an QD -an MQ -an DP -an MQRankSum -an ReadPosRankSum -an FS		\
+ -mode SNP            	\
+ --percentBadVariants 0.05 --maxGaussians 4	\
+ -input /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_raw.vcf	\
+ -recalFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_recal  	\
+ -tranchesFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_tranches	\
+ -rscriptFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_r    
+echo " "
+echo "##### GATK UnifiedGenotyper --> Apply Recalibration 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T ApplyRecalibration  \
+ --ts_filter_level 99.0 \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -input /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_raw.vcf            \
+ -recalFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_recal          \
+ -tranchesFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_tranches    \
+ -o /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_recal.vcf      
+more /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_recal.vcf |grep 'PASS' >/project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_pass.vcf
+echo ""
+echo "##### GATK VariantFiltration Mapqual: DP >= 13 && MQ >= 43.0 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantFiltration \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta \
+ --variant /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_recal.vcf	\
+ -o /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_filtered.vcf	\
+ --filterExpression "DP >= 13 && MQ >= 43.0" \
+ --filterName "q43cov13" 
+more /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_filtered.vcf |grep 'q43cov13' >/project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_q43cov13.vcf
+echo ""
+echo "##### ANNOVAR 3050_FFPEex"
+cd /project/results/me/WES/3050_FFPEex/genotyper/anno/
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_pass.vcf >3050_FFPEex.bwa.ug.snp_pass
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.snp_q43cov13.vcf >3050_FFPEex.bwa.ug.snp_q43cov13
+/analyse_bin/annovar/summarize_gatk_snp.pl --remove --step 1,4,9 3050_FFPEex.bwa.ug.snp_pass -outfile 3050_FFPEex.bwa.ug.snp_pass /analyse_bin/annovar/humandb/
+/analyse_bin/annovar/summarize_gatk_snp.pl --remove --step 1,4,9 3050_FFPEex.bwa.ug.snp_q43cov13 -outfile 3050_FFPEex.bwa.ug.snp_q43cov13 /analyse_bin/annovar/humandb/
+echo "DONE WITH SNP 3050_FFPEex"
+echo ""
+echo "##### GATK SelectVariants --> Select only InDels 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T SelectVariants \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ --variant /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.raw.vcf \
+ -o /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_raw.vcf \
+ -selectType INDEL
+echo ""
+echo " "
+echo "##### GATK UnifiedGenotyper --> VariantRecalibrator 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantRecalibrator \
+ -nt 5                  \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -resource:mills,known=false,training=true,truth=true,prior=12.0 /project/data/refs/b37/VCF/Mills_and_1000G_gold_standard.indels.b37.sites.vcf \
+ -resource:dbsnp,known=true,training=false,truth=false,prior=2.0 /project/data/refs/b37/VCF/dbsnp_135.b37.vcf \
+ -an DP -an FS -an ReadPosRankSum -an MQRankSum \
+ -mode INDEL            	\
+ --maxGaussians 4 -percentBad 0.10 -minNumBad 1000 \
+ -input /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_raw.vcf	\
+ -recalFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_recal  	\
+ -tranchesFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_tranches	\
+ -rscriptFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_r    
+echo " "
+echo "##### GATK UnifiedGenotyper --> Apply Recalibration 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T ApplyRecalibration  \
+ --ts_filter_level 99.0 \
+ -mode INDEL		\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -input /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_raw.vcf            \
+ -recalFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_recal          \
+ -tranchesFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_tranches    \
+ -o /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_recal.vcf      
+more /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_recal.vcf |grep 'PASS' >/project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_pass.vcf
+echo ""
+echo "##### GATK VariantFiltration Mapqual: DP >= 13 && MQ >= 43.0 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantFiltration \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta \
+ --variant /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_recal.vcf \
+ -o /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_filtered.vcf \
+ --filterExpression "DP >= 13 && MQ >= 43.0" \
+ --filterName "q43cov13" 
+more /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_filtered.vcf |grep 'q43cov13' >/project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_q43cov13.vcf
+echo ""
+echo "##### ANNOVAR 3050_FFPEex"
+cd /project/results/me/WES/3050_FFPEex/genotyper/anno/
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_pass.vcf >3050_FFPEex.bwa.ug.indel_pass
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_q43cov13.vcf >3050_FFPEex.bwa.ug.indel_q43cov13
+/analyse_bin/annovar/summarize_gatk_indel.pl --remove --step 1,4,9 3050_FFPEex.bwa.ug.indel_pass -outfile 3050_FFPEex.bwa.ug.indel_pass /analyse_bin/annovar/humandb/
+/analyse_bin/annovar/summarize_gatk_indel.pl --remove --step 1,4,9 3050_FFPEex.bwa.ug.indel_q43cov13 -outfile 3050_FFPEex.bwa.ug.indel_q43cov13 /analyse_bin/annovar/humandb/
+echo "DONE WITH INDEL2 3050_FFPEex"
+echo " "
+cd /project/results/me/WES/3050_FFPEex/genotyper/
+echo " "
+echo "START INDEL ANALYSIS with HAPLOTYPE CALLER bwa_default"
+echo "######## GATK HaplotypeCaller --> INDEL/SNP Calling 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T HaplotypeCaller	\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -D /project/data/refs/b37/VCF/dbsnp_135.b37.vcf			\
+ -I /project/results/me/WES/3050_FFPEex/gatk/3050_FFPEex.bwa.reduced.bam \
+ -o /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.raw.vcf	
+echo " "
+echo "##### GATK SelectVariants --> Select only InDels 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T SelectVariants \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ --variant /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.raw.vcf \
+ -o /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_select.vcf \
+ -selectType INDEL
+echo " "
+echo "##### GATK HaplotypeCaller--> VariantRecalibrator 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantRecalibrator \
+ -nt 5                  \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -resource:mills,known=false,training=true,truth=true,prior=12.0 /project/data/refs/b37/VCF/Mills_and_1000G_gold_standard.indels.b37.sites.vcf \
+ -resource:dbsnp,known=true,training=false,truth=false,prior=2.0 /project/data/refs/b37/VCF/dbsnp_135.b37.vcf \
+ -an DP -an FS -an ReadPosRankSum -an MQRankSum \
+ -mode INDEL            	\
+ --maxGaussians 4 -percentBad 0.01 -minNumBad 1000 \
+ -input /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_select.vcf	\
+ -recalFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_recal  	\
+ -tranchesFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_tranches	\
+ -rscriptFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_r    
+echo " "
+echo "##### GATK HaplotypeCaller--> Apply Recalibration 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T ApplyRecalibration  \
+ --ts_filter_level 99.0 \
+ -mode INDEL		\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -input /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_select.vcf            \
+ -recalFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_recal          \
+ -tranchesFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_tranches    \
+ -o /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_recal.vcf      
+more /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_recal.vcf |grep 'PASS' >/project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_pass.vcf
+echo ""
+echo "##### GATK VariantFiltration Mapqual: DP >= 13 && MQ >= 43.0 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantFiltration \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta \
+ --variant /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_recal.vcf	\
+ -o /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_filtered.vcf	\
+ --filterExpression "DP >= 13 && MQ >= 43.0" \
+ --filterName "q43cov13" 
+more /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_filtered.vcf |grep 'q43cov13' >/project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_q43cov13.vcf
+echo ""
+echo "##### ANNOVAR 3050_FFPEex"
+cd /project/results/me/WES/3050_FFPEex/genotyper/anno/
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_pass.vcf >3050_FFPEex.bwa.hapC.indel_pass
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.hapC.indel_q43cov13.vcf >3050_FFPEex.bwa.hapC.indel_q43cov13
+/analyse_bin/annovar/summarize_gatk_indel.pl --remove --step 1,4,9 3050_FFPEex.bwa.hapC.indel_pass -outfile 3050_FFPEex.bwa.hapC.indel_pass /analyse_bin/annovar/humandb/
+/analyse_bin/annovar/summarize_gatk_indel.pl --remove --step 1,4,9 3050_FFPEex.bwa.hapC.indel_q43cov13 -outfile 3050_FFPEex.bwa.hapC.indel_q43cov13 /analyse_bin/annovar/humandb/
+echo "DONE WITH INDEL HAPC 3050_FFPEex"
+
+
+
+
+
+echo "START INDEL ANALYSIS UG bwa_default"
+cd /project/results/me/WES/3050_FFPEex/genotyper/
+echo "######## GATK UnifiedGenotyper --> INDEL Calling 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T UnifiedGenotyper	\
+ -nt 5			\
+ -glm INDEL		\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -D /project/data/refs/b37/VCF/dbsnp_135.b37.vcf			\
+ -I /project/results/me/WES/3050_FFPEex/gatk/3050_FFPEex.bwa.reduced.bam 	\
+ -o /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_raw.vcf	
+echo " "
+echo "##### GATK UnifiedGenotyper --> VariantRecalibrator 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantRecalibrator \
+ -nt 5                  \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -resource:mills,known=false,training=true,truth=true,prior=12.0 /project/data/refs/b37/VCF/Mills_and_1000G_gold_standard.indels.b37.sites.vcf \
+ -resource:dbsnp,known=true,training=false,truth=false,prior=2.0 /project/data/refs/b37/VCF/dbsnp_135.b37.vcf \
+ -an DP -an FS -an ReadPosRankSum -an MQRankSum \
+ -mode INDEL            	\
+ --maxGaussians 4 -percentBad 0.01 -minNumBad 1000 \
+ -input /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_raw.vcf	\
+ -recalFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_recal  	\
+ -tranchesFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_tranches	\
+ -rscriptFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_r    
+echo " "
+echo "##### GATK UnifiedGenotyper --> Apply Recalibration 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T ApplyRecalibration  \
+ --ts_filter_level 99.0 \
+ -mode INDEL		\
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -input /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_raw.vcf            \
+ -recalFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_recal          \
+ -tranchesFile /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_tranches    \
+ -o /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_recal.vcf      
+more /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_recal.vcf |grep 'PASS' >/project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_pass.vcf
+echo ""
+echo "##### GATK VariantFiltration Mapqual: DP >= 13 && MQ >= 43.0 3050_FFPEex"
+java -Xmx24g -jar /analyse_bin/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantFiltration \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta \
+ --variant /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_recal.vcf	\
+ -o /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_filtered.vcf	\
+ --filterExpression "DP >= 13 && MQ >= 43.0" \
+ --filterName "q43cov13" 
+more /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_filtered.vcf |grep 'q43cov13' >/project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_q43cov13.vcf
+echo ""
+echo "##### ANNOVAR 3050_FFPEex"
+cd /project/results/me/WES/3050_FFPEex/genotyper/anno/
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_pass.vcf >3050_FFPEex.bwa.ug.indel_pass
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/me/WES/3050_FFPEex/genotyper/3050_FFPEex.bwa.ug.indel_q43cov13.vcf >3050_FFPEex.bwa.ug.indel_q43cov13
+/analyse_bin/annovar/summarize_gatk_indel.pl --remove --step 1,4,9 3050_FFPEex.bwa.ug.indel_pass -outfile 3050_FFPEex.bwa.ug.indel_pass /analyse_bin/annovar/humandb/
+/analyse_bin/annovar/summarize_gatk_indel.pl --remove --step 1,4,9 3050_FFPEex.bwa.ug.indel_q43cov13 -outfile 3050_FFPEex.bwa.ug.indel_q43cov13 /analyse_bin/annovar/humandb/
+echo "DONE WITH INDEL2 3050_FFPEex"
+echo ""
+echo ""
+echo "DONE"
+
+
+/analyse_bin/bedtools/bin/coverageBed -abam /project/results/me/WES/3050_FFex/gatk/3050_FFex.bwa.recal.bam -b /project/data/refs/b37/refGenes.gtf >/project/results/me/WES/3050_FFPEex/3050_FFex.bed
+/analyse_bin/bedtools/bin/coverageBed -abam /project/results/me/WES/3050_FFPEex/gatk/3050_FFPEex.bwa2.recal.bam -b /project/data/refs/b37/refGenes.gtf | awk '{OFS="\t"; print $1,2,$3,$4,$7}' >/project/results/me/WES/3050_FFPEex/3050_FFPEex.refGenes.bedg
+/analyse_bin/bedtools/bin/bamToBed -i gatk/3050_FFPEex.bwa2.recal.bam >3050_FFPEex.bwa2.recal.bed
+/analyse_bin/bedtools/bin/coverageBed -abam gatk/3050_FFPEex.bwa2.recal.bam -b /project/data/refs/b37/refGenes.gtf | awk '{OFS="\t"; print $1,2,$3,$4,$19,$20,$21,$22}' >3050_FFPEex.bwa2.recal.refGenes.bedg
+
+/analyse_bin/bedtools/bin/coverageBed -abam gatk/3050_FFPEex.bwa2.recal.bam -b /project/data/refs/b37/refGenes.gtf -hist  >3050_FFPEex.bwa2.recal.refGenes.hist.bedg
+
+

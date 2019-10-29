@@ -1,0 +1,34 @@
+SAMPLE = array(0,13)
+SAMPLE  =  c("2474","2561","2640","2685","2938","3050","3356","4079","4191","CN","CT","DN","DT")
+
+SAMPLE2 = array(0,13)
+SAMPLE2[10] = "14119(N)";
+
+textcolor = "#2E2E2E";
+
+fileFF10 = sprintf("/project/results/me/WGS/mapQ/%s_FFgen2_cut500",SAMPLE[10]);
+fileFFPE10 = sprintf("/project/results/me/WGS/mapQ/%s_FFPEgen2_cut500",SAMPLE[10]);
+tableFF10=read.table(fileFF10,sep="\t",header=F,fill=T);
+tableFFPE10=read.table(fileFFPE10,sep="\t",header=F,fill=T);
+
+
+
+pdffile = sprintf("/project/results/me/WGS/plots/WGS_FFgen_FFPEgen_boxplot.pdf");
+pdf (file = pdffile, width=2, height = 4, pointsize=1)
+	par (las = 1,mar=c(5,5,1,1),oma=c(0,2,0,0),col=textcolor)
+	boxplot ( tableFF10$V1, outline=F, xlab="", ylab="", ylim = c(33,62),
+	 col=c("#9ACD32"),fill=c("#9ACD32"),cex.main=1,cex=1,cex.axis=2,col.lab=textcolor,col.axis=textcolor,adj=1)
+	mtext (sprintf("mapping quality"),side=2,line=4,cex=2.5,las=0,col=textcolor,font=2)
+	mtext("14119(N)", side=1,line=2, cex=2.2, col=textcolor, font =2)
+	boxplot ( tableFFPE10$V1, outline=F, xlab="", ylab="", ylim = c(33,62),
+	 col=c("#1E90FF"),fill=c("#1E90FF"),cex.main=1,cex=1,cex.axis=2,col.lab=textcolor,col.axis=textcolor,adj=1)
+	mtext (sprintf("mapping quality"),side=2,line=4,cex=2.5,las=0,col=textcolor,font=2)
+	mtext("14119(N)", side=1,line=2, cex=2.2, col=textcolor, font =2)
+dev.off()
+
+
+say=sprintf("%s created!",pdffile);
+print(say); 
+
+
+

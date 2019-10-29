@@ -1,0 +1,232 @@
+#!/bin/bash
+#PBS -N N_L_bwa
+#PBS -l nodes=1:ppn=6,mem=100G,walltime=40:00:00
+#PBS -S /bin/sh
+#PBS -j oe
+#PBS -q default
+#PBS -M yhoang@ittc.ku.edu
+#PBS -m abe
+#PBS -o /users/yhoang/log/out.N_L_bwamem.log
+
+mkdir /scratch/jchien/Belinsky/N_L/bwa/
+mkdir /scratch/jchien/Belinsky/N_L/sort/
+mkdir /scratch/jchien/Belinsky/N_L/gatk/
+mkdir /scratch/jchien/Belinsky/N_L/genotyper/
+
+cd /scratch/jchien/Belinsky/N_L/bwa/
+echo "####### BWA MEM N_L ">>~/watch_N_L_bwamem.log 
+/tools/cluster/6.2/bwa/0.7.3a/bwa mem \
+ -t 6 -M -v 1 \
+ -r 1.0 -k 35 -U 15 \
+ -R '@RG\tID:N_L\tPL:Illumina\tPU:CGATGT\tLB:Exome\tDS:103126_L005\tSM:N_L' \
+ /data/jchien/refs/b37/human_g1k_v37.fasta.gz \
+ /data/jchien/Belinsky/Sample_103126/103126_CGATGT_L005_R1_001.fastq.gz \
+ /data/jchien/Belinsky/Sample_103126/103126_CGATGT_L005_R2_001.fastq.gz \
+ | /tools/cluster/6.2/samtools/0.1.18/samtools view -uS - \
+ | /tools/cluster/6.2/samtools/0.1.18/samtools sort - N_L.bwamem.ssorted \
+ 2>>~/watch_N_L_bwamem.log 
+echo "  ">>~/watch_N_L_bwamem.log 
+cd /scratch/jchien/Belinsky/N_L/sort
+echo "########## PICARD SORT N_L ">>~/watch_N_L_bwamem.log 
+java -Xmx34g -jar /tools/cluster/6.2/picard-tools/1.87/SortSam.jar   \
+ MAX_RECORDS_IN_RAM=30000000    \
+ VALIDATION_STRINGENCY=LENIENT \
+ SO=coordinate                  \
+ I=/scratch/jchien/Belinsky/N_L/bwa/N_L.bwamem.ssorted.bam\
+ O=/scratch/jchien/Belinsky/N_L/sort/N_L.bwamem.psorted.bam\
+ &>>~/watch_N_L_bwamem.log 
+echo "  ">>~/watch_N_L_bwamem.log 
+echo "####### PICARD-TOOLS DeleteDuplicates N_L ">>~/watch_N_L_bwamem.log 
+java -Xmx34g -jar /tools/cluster/6.2/picard-tools/1.87/MarkDuplicates.jar \
+ REMOVE_DUPLICATES=true \
+ CREATE_INDEX=true\
+ VALIDATION_STRINGENCY=LENIENT \
+ MAX_SEQUENCES_FOR_DISK_READ_ENDS_MAP=16000000 \
+ MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=16000000 \
+ I=/scratch/jchien/Belinsky/N_L/sort/N_L.bwamem.psorted.bam \
+ O=/scratch/jchien/Belinsky/N_L/sort/N_L.bwamem.rmd.bam \
+ M=/scratch/jchien/Belinsky/N_L/sort/N_L.bwamem.metrics.txt \
+&>>~/watch_N_L_bwamem.log 
+echo "  ">>~/watch_N_L_bwamem.log 
+echo "  ">>~/watch_N_L_bwamem.log 
+cd /scratch/jchien/Belinsky/N_L/gatk/
+echo "######## GATK realignertargetcreator N_L ">>~/watch_N_L_bwamem.log 
+java -Xmx85g -jar /data/jchien/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T RealignerTargetCreator \
+ -R /data/jchien/refs/b37/human_g1k_v37.fasta\
+ -known /data/jchien/refs/b37/Mills_and_1000G_gold_standard.indels.b37.sites.vcf \
+ -known /data/jchien/refs/b37/1000G_phase1.indels.b37.vcf \
+ -I /scratch/jchien/Belinsky/N_L/sort/N_L.bwamem.rmd.bam \
+ -I /scratch/jchien/Belinsky/T_L/sort/T_L.bwamem.rmd.bam \
+ -o /scratch/jchien/Belinsky/N_L/gatk/T_N_L.bwamem.rmd.realign.intervals \
+ -l INFO \
+ -nt 6 \
+&>>~/watch_N_L_bwamem.log 
+echo "  ">>~/watch_N_L_bwamem.log 
+echo "####### GATK indelrealigner N_L ">>~/watch_N_L_bwamem.log 
+java -Xmx85g -jar /data/jchien/GATK/2.5-2/GenomeAnalysisTK.jar\
+ -T IndelRealigner \
+ -R /data/jchien/refs/b37/human_g1k_v37.fasta\
+ -known /data/jchien/refs/b37/Mills_and_1000G_gold_standard.indels.b37.sites.vcf \
+ -known /data/jchien/refs/b37/1000G_phase1.indels.b37.vcf \
+ -I /scratch/jchien/Belinsky/N_L/sort/N_L.bwamem.rmd.bam \
+ -o /scratch/jchien/Belinsky/N_L/gatk/N_L.bwamem.rmd.realigned.bam \
+ -targetIntervals /scratch/jchien/Belinsky/N_L/gatk/T_N_L.bwamem.rmd.realign.intervals\
+ -l INFO \
+ -maxInMemory 16000000 \
+&>>~/watch_N_L_bwamem.log 
+echo "  ">>~/watch_N_L_bwamem.log 
+echo "######## GATK BaseRecalibrator --> Base Quality Score Recalibrator Step 1/2 N_L ">>~/watch_N_L_bwamem.log 
+java -Xmx85g -jar /data/jchien/GATK/2.5-2/GenomeAnalysisTK.jar\
+ -T BaseRecalibrator    \
+ -nct 5\
+ -R /data/jchien/refs/b37/human_g1k_v37.fasta\
+ -knownSites /data/jchien/refs/b37/1000G_omni2.5.b37.sites.vcf\
+ -knownSites /data/jchien/refs/b37/dbsnp_135.b37.vcf\
+ -I /scratch/jchien/Belinsky/N_L/gatk/N_L.bwamem.rmd.realigned.bam \
+ -o /scratch/jchien/Belinsky/N_L/gatk/N_L.recal_data.grp\
+&>>~/watch_N_L_bwamem.log 
+echo "  ">>~/watch_N_L_bwamem.log 
+echo "######## GATK PrintReads --> Base Quality Score Recalibrator Step 2/2 N_L ">>~/watch_N_L_bwamem.log 
+java -Xmx85g -jar /data/jchien/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T PrintReads  \
+ -R /data/jchien/refs/b37/human_g1k_v37.fasta\
+ -BQSR /scratch/jchien/Belinsky/N_L/gatk/N_L.recal_data.grp\
+ -I /scratch/jchien/Belinsky/N_L/gatk/N_L.bwamem.rmd.realigned.bam\
+ -o /scratch/jchien/Belinsky/N_L/gatk/N_L.bwamem.recal.bam\
+ -baq RECALCULATE \
+&>>~/watch_N_L_bwamem.log 
+echo "  ">>~/watch_N_L_bwamem.log 
+echo "##### GATK ReduceReads --> Improving Calling Performance N_L ">>~/watch_N_L_bwamem.log 
+java -Xmx85g -jar /data/jchien/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T ReduceReads \
+ -R /data/jchien/refs/b37/human_g1k_v37.fasta\
+ -I /scratch/jchien/Belinsky/N_L/gatk/N_L.bwamem.recal.bam \
+ -o /scratch/jchien/Belinsky/N_L/gatk/N_L.bwamem.reduced.bam \
+&>>~/watch_N_L_bwamem.log 
+echo " ">>~/watch_N_L_bwamem.log 
+echo " ">>~/watch_N_L_bwamem.log 
+echo "DONE WITH GATK REALIGNING N_L! NEXT GENOTYPING ">>~/watch_N_L_bwamem.log 
+ 
+cd /scratch/jchien/Belinsky/N_L/genotyper/
+echo "START SNP/INDEL2 ANALYSIS bwa_default">>~/watch_N_L_bwamem.log 
+echo "######## GATK UnifiedGenotyper --> SNP/INDEL Calling N_L">>~/watch_N_L_bwamem.log 
+java -Xmx85g -jar /data/jchien/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T UnifiedGenotyper\
+ -nt 6 		\
+ -glm BOTH 	\
+ -R /data/jchien/refs/b37/human_g1k_v37.fasta\
+ -D /data/jchien/refs/b37/dbsnp_135.b37.vcf\
+ -I /scratch/jchien/Belinsky/N_L/gatk/N_L.bwamem.reduced.bam \
+ -o /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.raw.vcf \
+&>>~/watch_N_L_bwamem.log 
+echo "">>~/watch_N_L_bwamem.log 
+echo " ">>~/watch_N_L_bwamem.log 
+echo "START SNP ANALYSIS bwa_default">>~/watch_N_L_bwamem.log 
+echo "##### GATK SelectVariants --> Select only SNP N_L"
+java -Xmx85g -jar /data/jchien/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T SelectVariants \
+ -R /data/jchien/refs/b37/human_g1k_v37.fasta\
+ --variant /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.raw.vcf \
+ -o /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_raw.vcf \
+ -selectType SNP
+echo " ">>~/watch_N_L_bwamem.log 
+echo "##### GATK UnifiedGenotyper --> VariantRecalibrator N_L">>~/watch_N_L_bwamem.log 
+java -Xmx85g -jar /data/jchien/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantRecalibrator \
+ -nt 6                  \
+ -R /data/jchien/refs/b37/human_g1k_v37.fasta\
+ -resource:hapmap,known=false,training=true,truth=true,prior=15.0 /data/jchien/refs/b37/hapmap_3.3.b37.sites.vcf     \
+ -resource:omni,known=false,training=true,truth=false,prior=12.0 /data/jchien/refs/b37/1000G_omni2.5.b37.sites.vcf   \
+ -resource:dbsnp,known=true,training=false,truth=false,prior=6.0 /data/jchien/refs/b37/dbsnp_135.b37.vcf             \
+ -an QD -an MQ -an DP -an MQRankSum -an ReadPosRankSum -an FS\
+ -mode SNP            \
+ -input /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_raw.vcf\
+ -recalFile /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_recal  \
+ -tranchesFile /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_tranches\
+ -rscriptFile /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_r   \
+&>>~/watch_N_L_bwamem.log  
+echo " ">>~/watch_N_L_bwamem.log 
+echo "##### GATK UnifiedGenotyper --> Apply Recalibration N_L">>~/watch_N_L_bwamem.log 
+java -Xmx85g -jar /data/jchien/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T ApplyRecalibration  \
+ --ts_filter_level 99.0 \
+ -R /data/jchien/refs/b37/human_g1k_v37.fasta\
+ -input /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_raw.vcf\
+ -recalFile /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_recal\
+ -tranchesFile /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_tranches\
+ -o /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_recal.vcf\
+&>>~/watch_N_L_bwamem.log 
+more /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_recal.vcf |grep 'PASS' >/scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_pass.vcf
+echo " ">>~/watch_N_L_bwamem.log 
+echo "##### GATK VariantFiltration Mapqual: DP >= 13 && MQ >= 43.0 N_L">>~/watch_N_L_bwamem.log 
+java -Xmx85g -jar /data/jchien/GATK/2.5-2/GenomeAnalysisTK.jar \
+ -T VariantFiltration \
+ -R /data/jchien/refs/b37/human_g1k_v37.fasta \
+ --variant /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_recal.vcf \
+ -o /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_filtered.vcf \
+ --filterExpression "DP >= 13 && MQ >= 43.0" \
+ --filterName "q43cov13" \
+&>>~/watch_N_L_bwamem.log 
+more /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_filtered.vcf |grep 'q43cov13' >/scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_q43cov13.vcf
+echo " ">>~/watch_N_L_bwamem.log 
+echo "##### ANNOVAR N_L">>~/watch_N_L_bwamem.log 
+cd /scratch/jchien/Belinsky/N_L/genotyper/anno/
+/data/jchien/annovar/convertgatk2annovar.pl -format vcf4 /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_pass.vcf >N_L.bwamem.ug.snp_pass 2>>~/watch_N_L_bwamem.log 
+/data/jchien/annovar/convertgatk2annovar.pl -format vcf4 /scratch/jchien/Belinsky/N_L/genotyper/N_L.bwamem.ug.snp_q43cov13.vcf >N_L.bwamem.ug.snp_q43cov13 2>>~/watch_N_L_bwamem.log 
+/data/jchien/annovar/summarize_gatk_snp.pl --remove --step 1,4,7,9 N_L.bwamem.ug.snp_pass -outfile N_L.bwamem.ug.snp_pass /data/jchien/annovar/humandb/ 2>>~/watch_N_L_bwamem.log 
+/data/jchien/annovar/summarize_gatk_snp.pl --remove --step 1,4,7,9 N_L.bwamem.ug.snp_q43cov13 -outfile N_L.bwamem.ug.snp_q43cov13 /data/jchien/annovar/humandb/ 2>>~/watch_N_L_bwamem.log 
+echo "DONE WITH SNP N_L ">>~/watch_N_L_bwamem.log 
+echo "">>~/watch_N_L_bwamem.log 
+echo "">>~/watch_N_L_bwamem.log 
+echo "DONE WITH N_L ">>~/watch_N_L_bwamem.log 
+ 
+ 
+cd /project/results/Belinsky/N_L/genotyper/
+echo "##### GATK UnifiedGenotyper --> VariantRecalibrator N_L"
+java -Xmx28g -jar /analyse_bin/GATK/2.4-7/GenomeAnalysisTK.jar \
+ -T VariantRecalibrator \
+ -nt 5                  \
+ -mode INDEL            \
+ --percentBadVariants 0.05 --maxGaussians 4	\
+ -an DP -an FS -an ReadPosRankSum -an MQRankSum \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta	\
+ -resource:mills,known=false,training=true,truth=true,prior=12.0 /project/data/refs/b37/VCF/Mills_and_1000G_gold_standard.indels.b37.sites.vcf \
+ -resource:dbsnp,known=true,training=false,truth=false,prior=2.0 /project/data/refs/b37/VCF/dbsnp_135.b37.vcf \
+ -input /project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel.raw.vcf    	\
+ -recalFile /project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel_recal  	\
+ -tranchesFile /project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel_tranches    \
+ -rscriptFile /project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel_r    
+echo " "
+echo "##### GATK UnifiedGenotyper --> Apply Recalibration N_L"
+java -Xmx28g -jar /analyse_bin/GATK/2.4-7/GenomeAnalysisTK.jar \
+ -T ApplyRecalibration  \
+ -mode INDEL            \
+ --ts_filter_level 99.0 \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta         \
+ -input /project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel.raw.vcf            \
+ -recalFile /project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel_recal          \
+ -tranchesFile /project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel_tranches    \
+ -o /project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel_recal.vcf       
+more /project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel_recal.vcf |grep 'PASS' >/project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel_recal_pass.vcf
+echo " "
+echo "##### GATK VariantFiltration Mapqual: DP >= 10 && MQ >= 30.0 N_L"
+java -Xmx28g -jar /analyse_bin/GATK/2.4-7/GenomeAnalysisTK.jar \
+ -T VariantFiltration \
+ -R /project/data/refs/b37/Sequences/WholeGenome/human_g1k_v37.fasta 	\
+ --variant /project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel_recal.vcf  \
+ -o /project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel_recal_filtered.vcf \
+ --filterExpression "DP >= 10 && MQ >= 30.0" \
+ --filterName "q30cov10" 
+more /project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel_recal_filtered.vcf |grep 'q30cov10' >/project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel_recal_q30cov10.vcf
+echo " "
+echo "##### ANNOVAR N_L"
+mkdir /project/results/Belinsky/N_L/genotyper/anno
+cd /project/results/Belinsky/N_L/genotyper/anno
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel_recal_q30cov10.vcf >/project/results/Belinsky/N_L/genotyper/anno/N_L.bwamem.indel_q30cov10 
+/analyse_bin/annovar/summarize_gatk_indel.pl --remove --step 1,4,7 /project/results/Belinsky/N_L/genotyper/anno/N_L.bwamem.indel_q30cov10 -outfile N_L.bwamem.indel_q30cov10 /analyse_bin/annovar/humandb/ 
+/analyse_bin/annovar/convertgatk2annovar.pl -format vcf4 /project/results/Belinsky/N_L/genotyper/N_L.bwamem.indel_recal_pass.vcf >/project/results/Belinsky/N_L/genotyper/anno/N_L.bwamem.indel_pass 
+/analyse_bin/annovar/summarize_gatk_indel.pl --remove --step 1,4,7 /project/results/Belinsky/N_L/genotyper/anno/N_L.bwamem.indel_pass -outfile N_L.bwamem.indel_pass /analyse_bin/annovar/humandb/ 
+echo "##### DONE INDEL ANALYSIS ##### N_L"
+echo " "
+
